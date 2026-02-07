@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GiftHorse - Unit Economics Dashboard</title>
+    <title>GiftHorse - Unit Economics Simulator 2.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -14,716 +14,657 @@
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'system-ui', 'sans-serif'],
-                    },
-                    colors: {
-                        stripe: {
-                            bg: '#f7fafc',
-                            card: '#ffffff',
-                            border: '#e2e8f0',
-                            primary: '#635bff',
-                            secondary: '#0a2540',
-                        },
-                        positive: '#00d4aa',
-                        negative: '#ff5c5c',
-                        chart: {
-                            blue: '#635bff',
-                            green: '#00d4aa',
-                            red: '#ff5c5c',
-                            orange: '#ff9f43',
-                        }
-                    }
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] }
                 }
             }
         }
     </script>
     <style>
-        * {
-            font-family: 'Inter', system-ui, sans-serif;
+        * { font-family: 'Inter', system-ui, sans-serif; }
+        body { background: #f7f8fa; }
+
+        /* Custom range slider */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #e2e8f0;
+            outline: none;
         }
-        
-        body {
-            background-color: #f7fafc;
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #635bff;
+            cursor: pointer;
+            border: 3px solid #fff;
+            box-shadow: 0 1px 4px rgba(99,91,255,0.4);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
         }
-        
-        .card {
-            animation: slideUp 0.5s ease-out forwards;
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            box-shadow: 0 2px 8px rgba(99,91,255,0.5);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #635bff;
+            cursor: pointer;
+            border: 3px solid #fff;
+            box-shadow: 0 1px 4px rgba(99,91,255,0.4);
+        }
+
+        .fade-up {
+            animation: fadeUp 0.5s ease-out forwards;
             opacity: 0;
-            transform: translateY(20px);
+            transform: translateY(16px);
         }
-        
-        .card:nth-child(1) { animation-delay: 0.05s; }
-        .card:nth-child(2) { animation-delay: 0.1s; }
-        .card:nth-child(3) { animation-delay: 0.15s; }
-        .card:nth-child(4) { animation-delay: 0.2s; }
-        
-        .chart-card {
-            animation: slideUp 0.5s ease-out forwards;
-            opacity: 0;
-            transform: translateY(20px);
+        .fade-up:nth-child(1) { animation-delay: 0.05s; }
+        .fade-up:nth-child(2) { animation-delay: 0.1s; }
+        .fade-up:nth-child(3) { animation-delay: 0.15s; }
+        .fade-up:nth-child(4) { animation-delay: 0.2s; }
+
+        @keyframes fadeUp {
+            to { opacity: 1; transform: translateY(0); }
         }
-        
-        .chart-card:nth-child(1) { animation-delay: 0.25s; }
-        .chart-card:nth-child(2) { animation-delay: 0.3s; }
-        .chart-card:nth-child(3) { animation-delay: 0.35s; }
-        .chart-card:nth-child(4) { animation-delay: 0.4s; }
-        
-        @keyframes slideUp {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .gradient-text {
-            background: linear-gradient(135deg, #635bff 0%, #a855f7 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .glow-card {
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .glow-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, #635bff, #00d4aa, #635bff);
-            background-size: 200% 100%;
-            animation: shimmer 2s linear infinite;
-        }
-        
-        @keyframes shimmer {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-        
-        .badge-pulse {
-            animation: pulse 2s ease-in-out infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(0, 212, 170, 0.4); }
-            50% { box-shadow: 0 0 0 8px rgba(0, 212, 170, 0); }
-        }
+
+        .sidebar-scroll::-webkit-scrollbar { width: 4px; }
+        .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
     </style>
 </head>
 <body class="min-h-screen">
-    <!-- Header -->
-    <header class="bg-white border-b border-stripe-border sticky top-0 z-50 shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-stripe-primary to-purple-500 flex items-center justify-center shadow-lg">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path>
-                        </svg>
+<div id="app">
+    <div class="flex flex-col lg:flex-row min-h-screen">
+
+        <!-- Sidebar -->
+        <aside class="w-full lg:w-80 xl:w-96 bg-white border-b lg:border-b-0 lg:border-r border-gray-200 flex-shrink-0">
+            <div class="lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto sidebar-scroll">
+                <!-- Sidebar Header -->
+                <div class="px-6 pt-6 pb-4 border-b border-gray-100">
+                    <div class="flex items-center gap-2.5 mb-1">
+                        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-[#635bff] to-purple-500 flex items-center justify-center">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <span class="text-lg font-bold text-gray-900">GiftHorse</span>
+                            <span class="ml-1.5 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-[#635bff]/10 text-[#635bff]">SIM 2.0</span>
+                        </div>
                     </div>
-                    <div>
-                        <span class="text-2xl font-bold gradient-text">GiftHorse</span>
-                        <p class="text-xs text-gray-500 -mt-1">Unit Economics Dashboard</p>
+                    <p class="text-xs text-gray-400 mt-2">Unit Economics Simulator</p>
+                </div>
+
+                <!-- Controls -->
+                <div class="px-6 py-5">
+                    <div class="flex items-center justify-between mb-5">
+                        <h2 class="text-sm font-semibold text-gray-900">Simulation Parameters</h2>
+                        <button @click="resetAll" class="text-xs font-medium text-[#635bff] hover:text-[#4b44d4] transition-colors flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            Reset
+                        </button>
+                    </div>
+
+                    <div class="space-y-5">
+                        <!-- Slider: Donations -->
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-xs font-medium text-gray-600 flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-sm bg-[#635bff]"></span>
+                                    Donation Conversion
+                                </label>
+                                <span class="text-xs font-bold tabular-nums" :class="multiplier_donations === 1 ? 'text-gray-400' : 'text-[#635bff]'">x{{ multiplier_donations.toFixed(2) }}</span>
+                            </div>
+                            <input type="range" v-model.number="multiplier_donations" min="0.5" max="2.0" step="0.05">
+                        </div>
+
+                        <!-- Slider: Partners -->
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-xs font-medium text-gray-600 flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-sm bg-[#8b5cf6]"></span>
+                                    Partner Revenue
+                                </label>
+                                <span class="text-xs font-bold tabular-nums" :class="multiplier_partners === 1 ? 'text-gray-400' : 'text-[#635bff]'">x{{ multiplier_partners.toFixed(2) }}</span>
+                            </div>
+                            <input type="range" v-model.number="multiplier_partners" min="0.5" max="2.0" step="0.05">
+                        </div>
+
+                        <!-- Slider: Subscriptions -->
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-xs font-medium text-gray-600 flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-sm bg-[#00d4aa]"></span>
+                                    Subscription Uptake
+                                </label>
+                                <span class="text-xs font-bold tabular-nums" :class="multiplier_subs === 1 ? 'text-gray-400' : 'text-[#635bff]'">x{{ multiplier_subs.toFixed(2) }}</span>
+                            </div>
+                            <input type="range" v-model.number="multiplier_subs" min="0.5" max="2.0" step="0.05">
+                        </div>
+
+                        <!-- Slider: Retention -->
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-xs font-medium text-gray-600 flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-sm bg-[#f59e0b]"></span>
+                                    Retention Factor
+                                </label>
+                                <span class="text-xs font-bold tabular-nums" :class="retention_factor === 1 ? 'text-gray-400' : 'text-[#635bff]'">x{{ retention_factor.toFixed(2) }}</span>
+                            </div>
+                            <input type="range" v-model.number="retention_factor" min="0.5" max="2.0" step="0.05">
+                        </div>
+
+                        <!-- Slider: Viral -->
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-xs font-medium text-gray-600 flex items-center gap-1.5">
+                                    <span class="w-2.5 h-2.5 rounded-sm bg-[#ec4899]"></span>
+                                    Viral Factor (K)
+                                </label>
+                                <span class="text-xs font-bold tabular-nums" :class="viral_factor === 1 ? 'text-gray-400' : 'text-[#635bff]'">x{{ viral_factor.toFixed(2) }}</span>
+                            </div>
+                            <input type="range" v-model.number="viral_factor" min="0.5" max="2.0" step="0.05">
+                        </div>
+                    </div>
+
+                    <!-- Scenario presets -->
+                    <div class="mt-6 pt-5 border-t border-gray-100">
+                        <p class="text-xs font-semibold text-gray-900 mb-3">Quick Scenarios</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button @click="applyScenario('pessimistic')" class="text-xs font-medium px-3 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-red-300 hover:text-red-600 hover:bg-red-50 transition-all">
+                                😟 Pessimistic
+                            </button>
+                            <button @click="applyScenario('base')" class="text-xs font-medium px-3 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-gray-400 hover:bg-gray-50 transition-all">
+                                📊 Base Case
+                            </button>
+                            <button @click="applyScenario('optimistic')" class="text-xs font-medium px-3 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-green-300 hover:text-green-600 hover:bg-green-50 transition-all">
+                                🚀 Optimistic
+                            </button>
+                            <button @click="applyScenario('viral')" class="text-xs font-medium px-3 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-purple-300 hover:text-purple-600 hover:bg-purple-50 transition-all">
+                                🔥 Viral Growth
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Summary -->
+                    <div class="mt-5 pt-5 border-t border-gray-100">
+                        <p class="text-xs font-semibold text-gray-900 mb-3">Impact Summary</p>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-xs">
+                                <span class="text-gray-500">Revenue Δ</span>
+                                <span class="font-semibold tabular-nums" :class="revenueDelta >= 0 ? 'text-[#00d4aa]' : 'text-red-500'">
+                                    {{ revenueDelta >= 0 ? '+' : '' }}{{ revenueDelta.toFixed(1) }}%
+                                </span>
+                            </div>
+                            <div class="flex justify-between text-xs">
+                                <span class="text-gray-500">Profit Δ</span>
+                                <span class="font-semibold tabular-nums" :class="profitDelta >= 0 ? 'text-[#00d4aa]' : 'text-red-500'">
+                                    {{ profitDelta >= 0 ? '+' : '' }}{{ profitDelta.toFixed(1) }}%
+                                </span>
+                            </div>
+                            <div class="flex justify-between text-xs">
+                                <span class="text-gray-500">Users Δ</span>
+                                <span class="font-semibold tabular-nums" :class="usersDelta >= 0 ? 'text-[#00d4aa]' : 'text-red-500'">
+                                    {{ usersDelta >= 0 ? '+' : '' }}{{ usersDelta.toFixed(1) }}%
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="flex items-center gap-3">
-                    <span class="badge-pulse inline-flex items-center gap-2 px-4 py-2 rounded-full bg-positive/10 text-positive font-semibold text-sm border border-positive/20">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                        </svg>
-                        Breakeven reached in Q1 2027 🚀
-                    </span>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 min-w-0">
+            <!-- Top Bar -->
+            <div class="bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8 py-4">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <div>
+                        <h1 class="text-xl font-semibold text-gray-900">Unit Economics Simulator</h1>
+                        <p class="text-sm text-gray-500">24-month forecast &bull; Adjust parameters to explore scenarios</p>
+                    </div>
+                    <div v-if="breakevenMonth !== null" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#00d4aa]/10 text-[#00d4aa] text-sm font-semibold border border-[#00d4aa]/20">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                        Breakeven: Month {{ breakevenMonth }}
+                    </div>
+                    <div v-else class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-50 text-red-500 text-sm font-semibold border border-red-200">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                        No breakeven in 24 months
+                    </div>
+                </div>
+            </div>
+
+            <div class="px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+                <!-- KPI Cards -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                    <div class="fade-up bg-white rounded-xl p-4 sm:p-5 shadow-sm border border-gray-100">
+                        <p class="text-xs font-medium text-gray-500 mb-1">Total Revenue (24m)</p>
+                        <p class="text-xl sm:text-2xl font-bold text-gray-900 tabular-nums">{{ formatMoney(totalRevenue) }}</p>
+                        <p class="text-[11px] mt-1 tabular-nums" :class="revenueDelta >= 0 ? 'text-[#00d4aa]' : 'text-red-500'">
+                            {{ revenueDelta >= 0 ? '↑' : '↓' }} {{ Math.abs(revenueDelta).toFixed(1) }}% vs base
+                        </p>
+                    </div>
+                    <div class="fade-up bg-white rounded-xl p-4 sm:p-5 shadow-sm border border-gray-100">
+                        <p class="text-xs font-medium text-gray-500 mb-1">Net Profit (24m)</p>
+                        <p class="text-xl sm:text-2xl font-bold tabular-nums" :class="totalProfit >= 0 ? 'text-[#00d4aa]' : 'text-red-500'">{{ formatMoney(totalProfit) }}</p>
+                        <p class="text-[11px] mt-1 tabular-nums" :class="profitDelta >= 0 ? 'text-[#00d4aa]' : 'text-red-500'">
+                            {{ profitDelta >= 0 ? '↑' : '↓' }} {{ Math.abs(profitDelta).toFixed(1) }}% vs base
+                        </p>
+                    </div>
+                    <div class="fade-up bg-white rounded-xl p-4 sm:p-5 shadow-sm border border-gray-100">
+                        <p class="text-xs font-medium text-gray-500 mb-1">Peak Users (M24)</p>
+                        <p class="text-xl sm:text-2xl font-bold text-gray-900 tabular-nums">{{ formatNum(simUsers[23]) }}</p>
+                        <p class="text-[11px] text-gray-400 mt-1">Active user base</p>
+                    </div>
+                    <div class="fade-up bg-white rounded-xl p-4 sm:p-5 shadow-sm border border-gray-100">
+                        <p class="text-xs font-medium text-gray-500 mb-1">Breakeven Month</p>
+                        <p class="text-xl sm:text-2xl font-bold tabular-nums" :class="breakevenMonth ? 'text-[#00d4aa]' : 'text-red-500'">
+                            {{ breakevenMonth ? 'M' + breakevenMonth : 'N/A' }}
+                        </p>
+                        <p class="text-[11px] mt-1" :class="breakevenMonth ? 'text-[#00d4aa]' : 'text-red-500'">
+                            {{ breakevenMonth ? 'Target reached' : 'Not reached' }}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-5">
+                    <!-- Revenue Breakdown -->
+                    <div class="bg-white rounded-xl p-5 sm:p-6 shadow-sm border border-gray-100">
+                        <div class="flex items-center justify-between mb-5">
+                            <div>
+                                <h3 class="text-sm font-semibold text-gray-900">Revenue Breakdown by Channel</h3>
+                                <p class="text-xs text-gray-500 mt-0.5">Monthly stacked view — 24 months</p>
+                            </div>
+                        </div>
+                        <div class="h-64 sm:h-72">
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Profit / Loss -->
+                    <div class="bg-white rounded-xl p-5 sm:p-6 shadow-sm border border-gray-100">
+                        <div class="flex items-center justify-between mb-5">
+                            <div>
+                                <h3 class="text-sm font-semibold text-gray-900">Profit vs Loss Dynamics</h3>
+                                <p class="text-xs text-gray-500 mt-0.5">Monthly net profit with breakeven marker</p>
+                            </div>
+                        </div>
+                        <div class="h-64 sm:h-72">
+                            <canvas id="profitChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- User Growth — full width -->
+                    <div class="xl:col-span-2 bg-white rounded-xl p-5 sm:p-6 shadow-sm border border-gray-100">
+                        <div class="flex items-center justify-between mb-5">
+                            <div>
+                                <h3 class="text-sm font-semibold text-gray-900">User Growth Scenario</h3>
+                                <p class="text-xs text-gray-500 mt-0.5">Active user base projection — influenced by Retention & Viral factors</p>
+                            </div>
+                            <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-[#635bff]/10 text-[#635bff]">
+                                {{ formatNum(simUsers[23]) }} users by M24
+                            </span>
+                        </div>
+                        <div class="h-56 sm:h-64">
+                            <canvas id="usersChart"></canvas>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </header>
+    </div>
+</div>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- KPI Cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 mb-8">
-            <!-- LTV/CAC Card -->
-            <div class="card glow-card bg-white rounded-2xl p-6 shadow-sm border border-stripe-border hover:shadow-lg transition-all duration-300">
-                <div class="flex items-start justify-between mb-4">
-                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-stripe-primary/10 to-purple-500/10 flex items-center justify-center">
-                        <svg class="w-6 h-6 text-stripe-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                        </svg>
-                    </div>
-                    <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-positive/10 text-positive">Outstanding</span>
-                </div>
-                <p class="text-sm font-medium text-gray-500 mb-1">LTV / CAC Ratio</p>
-                <p class="text-4xl font-bold text-stripe-secondary">22x</p>
-                <p class="text-xs text-gray-400 mt-2 flex items-center gap-1">
-                    <svg class="w-3 h-3 text-positive" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd"></path>
-                    </svg>
-                    11x above healthy benchmark (3x)
-                </p>
-            </div>
+<script>
+const { createApp, ref, computed, watch, onMounted, nextTick } = Vue;
 
-            <!-- Payback Card -->
-            <div class="card bg-white rounded-2xl p-6 shadow-sm border border-stripe-border hover:shadow-lg transition-all duration-300">
-                <div class="flex items-start justify-between mb-4">
-                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-positive/10 to-emerald-500/10 flex items-center justify-center">
-                        <svg class="w-6 h-6 text-positive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </div>
-                    <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-positive/10 text-positive">Fast</span>
-                </div>
-                <p class="text-sm font-medium text-gray-500 mb-1">Payback Period</p>
-                <p class="text-4xl font-bold text-stripe-secondary">0.9 <span class="text-xl font-medium text-gray-400">mo</span></p>
-                <p class="text-xs text-gray-400 mt-2">CAC recovered in under 1 month</p>
-            </div>
-
-            <!-- Breakeven Card -->
-            <div class="card bg-white rounded-2xl p-6 shadow-sm border border-stripe-border hover:shadow-lg transition-all duration-300">
-                <div class="flex items-start justify-between mb-4">
-                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-chart-orange/10 to-amber-500/10 flex items-center justify-center">
-                        <svg class="w-6 h-6 text-chart-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </div>
-                    <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-chart-orange/10 text-chart-orange">Target Reached</span>
-                </div>
-                <p class="text-sm font-medium text-gray-500 mb-1">Breakeven Point</p>
-                <p class="text-4xl font-bold text-stripe-secondary">Month <span class="text-positive">13</span></p>
-                <p class="text-xs text-gray-400 mt-2">Q1 2027 • Profitable operations</p>
-            </div>
-
-            <!-- 2-Year Revenue Card -->
-            <div class="card bg-gradient-to-br from-stripe-primary to-purple-600 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 text-white">
-                <div class="flex items-start justify-between mb-4">
-                    <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </div>
-                    <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-white/20 text-white">Forecast</span>
-                </div>
-                <p class="text-sm font-medium text-white/70 mb-1">2-Year Revenue</p>
-                <p class="text-4xl font-bold">$29.8M</p>
-                <p class="text-xs text-white/60 mt-2 flex items-center gap-1">
-                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd"></path>
-                    </svg>
-                    98x growth from Q1 2026
-                </p>
-            </div>
-        </div>
-
-        <!-- Charts Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
-            <!-- Path to Profitability -->
-            <div class="chart-card bg-white rounded-2xl p-6 shadow-sm border border-stripe-border">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6">
-                    <div>
-                        <h3 class="text-lg font-semibold text-stripe-secondary">Path to Profitability</h3>
-                        <p class="text-sm text-gray-500">Revenue & Net Profit over 8 quarters</p>
-                    </div>
-                    <div class="flex items-center gap-4 text-xs">
-                        <span class="flex items-center gap-1.5">
-                            <span class="w-3 h-3 rounded-full bg-stripe-primary"></span>
-                            Revenue
-                        </span>
-                        <span class="flex items-center gap-1.5">
-                            <span class="w-3 h-3 rounded-full bg-gradient-to-r from-negative to-positive"></span>
-                            Net Profit
-                        </span>
-                    </div>
-                </div>
-                <div class="h-72 sm:h-80">
-                    <canvas id="profitabilityChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Unit Economics Evolution -->
-            <div class="chart-card bg-white rounded-2xl p-6 shadow-sm border border-stripe-border">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6">
-                    <div>
-                        <h3 class="text-lg font-semibold text-stripe-secondary">Unit Economics Evolution</h3>
-                        <p class="text-sm text-gray-500">CAC decreasing, LTV growing</p>
-                    </div>
-                    <div class="flex items-center gap-4 text-xs">
-                        <span class="flex items-center gap-1.5">
-                            <span class="w-3 h-3 rounded bg-negative/80"></span>
-                            CAC
-                        </span>
-                        <span class="flex items-center gap-1.5">
-                            <span class="w-3 h-3 rounded-full bg-positive"></span>
-                            LTV
-                        </span>
-                    </div>
-                </div>
-                <div class="h-72 sm:h-80">
-                    <canvas id="unitEconomicsChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Retention Curve -->
-            <div class="chart-card bg-white rounded-2xl p-6 shadow-sm border border-stripe-border">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6">
-                    <div>
-                        <h3 class="text-lg font-semibold text-stripe-secondary">Retention Curve</h3>
-                        <p class="text-sm text-gray-500">24-month cohort retention behavior</p>
-                    </div>
-                    <div class="px-2.5 py-1 rounded-full text-xs font-medium bg-positive/10 text-positive">
-                        35% long-term plateau
-                    </div>
-                </div>
-                <div class="h-72 sm:h-80">
-                    <canvas id="retentionChart"></canvas>
-                </div>
-            </div>
-
-            <!-- User Growth -->
-            <div class="chart-card bg-white rounded-2xl p-6 shadow-sm border border-stripe-border">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6">
-                    <div>
-                        <h3 class="text-lg font-semibold text-stripe-secondary">User Growth 24 Months</h3>
-                        <p class="text-sm text-gray-500">Cumulative active user base</p>
-                    </div>
-                    <div class="px-2.5 py-1 rounded-full text-xs font-medium bg-stripe-primary/10 text-stripe-primary">
-                        360K users by M24
-                    </div>
-                </div>
-                <div class="h-72 sm:h-80">
-                    <canvas id="userGrowthChart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- Footer -->
-        <footer class="mt-10 text-center text-sm text-gray-400 pb-8">
-            <p>GiftHorse Unit Economics Dashboard &copy; 2026-2027</p>
-            <p class="mt-1">Projection period: Q1 2026 - Q4 2027 (24 months)</p>
-        </footer>
-    </main>
-
-    <script>
-        // Dashboard Data
-        const dashboardData = {
-            quarterly: {
-                labels: ['Q1 2026', 'Q2 2026', 'Q3 2026', 'Q4 2026', 'Q1 2027', 'Q2 2027', 'Q3 2027', 'Q4 2027'],
-                revenue: [83942, 893772, 1820393, 2896740, 4036715, 5203088, 6578187, 8306227],
-                netProfit: [-372472, -321664, -246016, -83860, 102992, 242387, 397475, 583441],
-                cac: [10.8, 4.3, 4.3, 4.3, 4.0, 3.8, 3.5, 3.2],
-                ltv: [101, 110, 111, 115, 120, 128, 135, 142]
-            },
-            monthly: {
-                labels: Array.from({length: 24}, (_, i) => `M${i+1}`),
-                retention: [100, 65, 58, 54, 51, 49, 47, 46, 45, 44, 43, 42, 41, 40, 39, 39, 38, 38, 37, 37, 36, 36, 35, 35],
-                churn: [0, 35, 42, 46, 49, 51, 53, 54, 55, 56, 57, 58, 59, 60, 61, 61, 62, 62, 63, 63, 64, 64, 65, 65],
-                users: [2566, 4838, 8858, 20526, 32287, 44142, 56091, 68137, 80750, 92993, 105334, 117773, 130000, 145000, 160000, 175000, 190000, 210000, 230000, 250000, 275000, 300000, 330000, 360000]
-            }
+createApp({
+    setup() {
+        // ───── Base Data ─────
+        const baseData = {
+            revenue_donations: [11000,20735,37966,68270,98816,129606,160643,191928,230348,267691,305332,343275,381878,421503,462521,505325,550336,598015,648875,703490,762516,826704,896919,974171],
+            revenue_amazon: [0,0,0,7680,11117,14581,18072,21592,25914,30115,34350,38618,42961,47419,52034,56849,61913,67277,72998,79143,85783,93004,100903,109594],
+            revenue_affiliates: [0,433,1633,7680,11117,14581,18072,21592,25914,30115,34350,38618,42961,47419,52034,56849,61913,67277,72998,79143,85783,93004,100903,109594],
+            revenue_partners: [0,39,145,43707,56299,68993,81788,94685,114095,128771,144289,159931,175834,192139,208987,226530,244930,264364,285029,307147,330968,356778,384908,415744],
+            revenue_subs: [0,0,0,574,1247,1963,2703,6462,15510,26562,38201,55646,70323,80069,87850,95694,103797,112207,120979,130172,139853,150095,160982,172609],
+            costs_fixed: Array(24).fill(70000),
+            costs_acq_per_user: 4.3,
+            users_base: [2200,4147,7593,13654,19763,25921,32129,38386,46070,53538,61066,68655,76342,84168,92173,100403,108904,117729,126932,136578,146735,157480,168903,181103]
         };
 
-        // Chart.js Global Config
-        Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
-        Chart.defaults.color = '#64748b';
-        Chart.defaults.plugins.legend.display = false;
-        Chart.defaults.plugins.tooltip.backgroundColor = '#0a2540';
-        Chart.defaults.plugins.tooltip.titleColor = '#fff';
-        Chart.defaults.plugins.tooltip.bodyColor = '#fff';
-        Chart.defaults.plugins.tooltip.padding = 12;
-        Chart.defaults.plugins.tooltip.cornerRadius = 8;
-        Chart.defaults.plugins.tooltip.displayColors = false;
+        const labels = Array.from({length: 24}, (_, i) => `M${i + 1}`);
 
-        // Utility Functions
-        const formatCurrency = (value) => {
-            const absValue = Math.abs(value);
-            if (absValue >= 1000000) {
-                return (value < 0 ? '-' : '') + '$' + (absValue / 1000000).toFixed(2) + 'M';
-            } else if (absValue >= 1000) {
-                return (value < 0 ? '-' : '') + '$' + (absValue / 1000).toFixed(0) + 'K';
-            }
-            return '$' + value.toFixed(0);
+        // ───── Reactive Sliders ─────
+        const multiplier_donations = ref(1.0);
+        const multiplier_partners = ref(1.0);
+        const multiplier_subs = ref(1.0);
+        const retention_factor = ref(1.0);
+        const viral_factor = ref(1.0);
+
+        // ───── Computed Simulated Arrays ─────
+        const simDonations = computed(() => baseData.revenue_donations.map(v => Math.round(v * multiplier_donations.value)));
+        const simAmazon = computed(() => [...baseData.revenue_amazon]);
+        const simAffiliates = computed(() => [...baseData.revenue_affiliates]);
+        const simPartners = computed(() => baseData.revenue_partners.map(v => Math.round(v * multiplier_partners.value)));
+        const simSubs = computed(() => baseData.revenue_subs.map(v => Math.round(v * multiplier_subs.value)));
+
+        const simUsers = computed(() => {
+            const factor = retention_factor.value * viral_factor.value;
+            return baseData.users_base.map(v => Math.round(v * factor));
+        });
+
+        const simRevenueTotal = computed(() =>
+            labels.map((_, i) => simDonations.value[i] + simAmazon.value[i] + simAffiliates.value[i] + simPartners.value[i] + simSubs.value[i])
+        );
+
+        const simCosts = computed(() =>
+            labels.map((_, i) => baseData.costs_fixed[i] + simUsers.value[i] * baseData.costs_acq_per_user)
+        );
+
+        const simProfit = computed(() =>
+            labels.map((_, i) => simRevenueTotal.value[i] - simCosts.value[i])
+        );
+
+        // ───── KPI Metrics ─────
+        const totalRevenue = computed(() => simRevenueTotal.value.reduce((a, b) => a + b, 0));
+        const totalProfit = computed(() => simProfit.value.reduce((a, b) => a + b, 0));
+
+        const breakevenMonth = computed(() => {
+            const idx = simProfit.value.findIndex(v => v > 0);
+            return idx >= 0 ? idx + 1 : null;
+        });
+
+        // Base-case totals for delta calculation (precomputed once)
+        const baseTotalRevenue = baseData.revenue_donations.map((v, i) =>
+            v + baseData.revenue_amazon[i] + baseData.revenue_affiliates[i] + baseData.revenue_partners[i] + baseData.revenue_subs[i]
+        ).reduce((a, b) => a + b, 0);
+
+        const baseTotalProfit = baseData.revenue_donations.map((v, i) => {
+            const rev = v + baseData.revenue_amazon[i] + baseData.revenue_affiliates[i] + baseData.revenue_partners[i] + baseData.revenue_subs[i];
+            const cost = baseData.costs_fixed[i] + baseData.users_base[i] * baseData.costs_acq_per_user;
+            return rev - cost;
+        }).reduce((a, b) => a + b, 0);
+
+        const baseTotalUsers = baseData.users_base[23];
+
+        const revenueDelta = computed(() => ((totalRevenue.value - baseTotalRevenue) / baseTotalRevenue) * 100);
+        const profitDelta = computed(() => {
+            if (baseTotalProfit === 0) return totalProfit.value > 0 ? 100 : -100;
+            return ((totalProfit.value - baseTotalProfit) / Math.abs(baseTotalProfit)) * 100;
+        });
+        const usersDelta = computed(() => ((simUsers.value[23] - baseTotalUsers) / baseTotalUsers) * 100);
+
+        // ───── Formatting Helpers ─────
+        const formatMoney = (v) => {
+            const abs = Math.abs(v);
+            const sign = v < 0 ? '-' : '';
+            if (abs >= 1e6) return sign + '$' + (abs / 1e6).toFixed(2) + 'M';
+            if (abs >= 1e3) return sign + '$' + (abs / 1e3).toFixed(0) + 'K';
+            return sign + '$' + abs.toFixed(0);
         };
 
-        const formatNumber = (value) => {
-            if (value >= 1000000) return (value / 1000000).toFixed(1) + 'M';
-            if (value >= 1000) return (value / 1000).toFixed(0) + 'K';
-            return value.toString();
+        const formatNum = (v) => {
+            if (v >= 1e6) return (v / 1e6).toFixed(1) + 'M';
+            if (v >= 1e3) return (v / 1e3).toFixed(1) + 'K';
+            return String(v);
         };
 
-        // 1. Path to Profitability Chart
-        const profitCtx = document.getElementById('profitabilityChart').getContext('2d');
-        
-        // Create gradient for revenue
-        const revenueGradient = profitCtx.createLinearGradient(0, 0, 0, 320);
-        revenueGradient.addColorStop(0, 'rgba(99, 91, 255, 0.3)');
-        revenueGradient.addColorStop(1, 'rgba(99, 91, 255, 0.02)');
+        // ───── Actions ─────
+        const resetAll = () => {
+            multiplier_donations.value = 1.0;
+            multiplier_partners.value = 1.0;
+            multiplier_subs.value = 1.0;
+            retention_factor.value = 1.0;
+            viral_factor.value = 1.0;
+        };
 
-        // Create segmented colors for profit line (red when negative, green when positive)
-        const profitColors = dashboardData.quarterly.netProfit.map(v => v >= 0 ? '#00d4aa' : '#ff5c5c');
-        const profitBorderColors = [];
-        for (let i = 0; i < dashboardData.quarterly.netProfit.length; i++) {
-            profitBorderColors.push(dashboardData.quarterly.netProfit[i] >= 0 ? '#00d4aa' : '#ff5c5c');
-        }
+        const applyScenario = (name) => {
+            const scenarios = {
+                pessimistic: { d: 0.7, p: 0.6, s: 0.6, r: 0.75, v: 0.8 },
+                base:        { d: 1.0, p: 1.0, s: 1.0, r: 1.0, v: 1.0 },
+                optimistic:  { d: 1.3, p: 1.4, s: 1.5, r: 1.2, v: 1.15 },
+                viral:       { d: 1.1, p: 1.1, s: 1.2, r: 1.3, v: 1.8 }
+            };
+            const s = scenarios[name];
+            if (!s) return;
+            multiplier_donations.value = s.d;
+            multiplier_partners.value = s.p;
+            multiplier_subs.value = s.s;
+            retention_factor.value = s.r;
+            viral_factor.value = s.v;
+        };
 
-        new Chart(profitCtx, {
-            type: 'line',
-            data: {
-                labels: dashboardData.quarterly.labels,
-                datasets: [
-                    {
-                        label: 'Revenue',
-                        data: dashboardData.quarterly.revenue,
+        // ───── Charts ─────
+        let revenueChart = null;
+        let profitChart = null;
+        let usersChart = null;
+
+        const chartFont = { family: "'Inter', system-ui, sans-serif" };
+        const tooltipStyle = {
+            backgroundColor: '#0a2540',
+            titleColor: '#fff',
+            bodyColor: '#e2e8f0',
+            padding: 12,
+            cornerRadius: 8,
+            titleFont: { ...chartFont, size: 12, weight: '600' },
+            bodyFont: { ...chartFont, size: 12 },
+            displayColors: true,
+            boxPadding: 4
+        };
+
+        const initCharts = () => {
+            Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
+            Chart.defaults.color = '#94a3b8';
+
+            // Revenue Stacked Bar
+            const rCtx = document.getElementById('revenueChart').getContext('2d');
+            revenueChart = new Chart(rCtx, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [
+                        { label: 'Donations', data: simDonations.value, backgroundColor: '#635bff', borderRadius: 2 },
+                        { label: 'Partners', data: simPartners.value, backgroundColor: '#8b5cf6', borderRadius: 2 },
+                        { label: 'Subscriptions', data: simSubs.value, backgroundColor: '#00d4aa', borderRadius: 2 },
+                        { label: 'Amazon', data: simAmazon.value, backgroundColor: '#f59e0b', borderRadius: 2 },
+                        { label: 'Affiliates', data: simAffiliates.value, backgroundColor: '#94a3b8', borderRadius: 2 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { intersect: false, mode: 'index' },
+                    plugins: {
+                        legend: { display: true, position: 'bottom', labels: { usePointStyle: true, pointStyle: 'rectRounded', padding: 14, font: { size: 11 } } },
+                        tooltip: { ...tooltipStyle, callbacks: { label: ctx => ` ${ctx.dataset.label}: $${ctx.parsed.y.toLocaleString()}` } }
+                    },
+                    scales: {
+                        x: { stacked: true, grid: { display: false }, ticks: { font: { size: 10 }, maxTicksLimit: 12 } },
+                        y: { stacked: true, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 10 }, callback: v => v >= 1e6 ? (v/1e6).toFixed(1)+'M' : v >= 1e3 ? (v/1e3).toFixed(0)+'K' : v } }
+                    },
+                    animation: { duration: 600, easing: 'easeOutQuart' }
+                }
+            });
+
+            // Profit Line
+            const pCtx = document.getElementById('profitChart').getContext('2d');
+            const profitGradientGreen = pCtx.createLinearGradient(0, 0, 0, 300);
+            profitGradientGreen.addColorStop(0, 'rgba(0, 212, 170, 0.35)');
+            profitGradientGreen.addColorStop(1, 'rgba(0, 212, 170, 0.02)');
+
+            profitChart = new Chart(pCtx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Net Profit',
+                        data: simProfit.value,
+                        borderWidth: 2.5,
+                        tension: 0.35,
+                        pointRadius: 0,
+                        pointHoverRadius: 5,
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderWidth: 2.5,
+                        fill: true,
+                        segment: {
+                            borderColor: ctx => ctx.p0.parsed.y < 0 && ctx.p1.parsed.y < 0 ? '#ff5c5c' : ctx.p0.parsed.y >= 0 && ctx.p1.parsed.y >= 0 ? '#00d4aa' : '#f59e0b',
+                            backgroundColor: ctx => ctx.p0.parsed.y < 0 ? 'rgba(255, 92, 92, 0.12)' : 'rgba(0, 212, 170, 0.18)'
+                        }
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { intersect: false, mode: 'index' },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            ...tooltipStyle,
+                            displayColors: false,
+                            callbacks: {
+                                label: ctx => {
+                                    const v = ctx.parsed.y;
+                                    const prefix = v >= 0 ? '+' : '';
+                                    return `Net Profit: ${prefix}$${v.toLocaleString()}`;
+                                },
+                                labelColor: ctx => ({
+                                    borderColor: ctx.parsed.y >= 0 ? '#00d4aa' : '#ff5c5c',
+                                    backgroundColor: ctx.parsed.y >= 0 ? '#00d4aa' : '#ff5c5c'
+                                })
+                            }
+                        },
+                        annotation: {
+                            annotations: {
+                                zeroLine: {
+                                    type: 'line',
+                                    yMin: 0, yMax: 0,
+                                    borderColor: '#cbd5e1',
+                                    borderWidth: 1,
+                                    borderDash: [4, 3]
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { font: { size: 10 }, maxTicksLimit: 12 } },
+                        y: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 10 }, callback: v => { const a = Math.abs(v); const s = v < 0 ? '-' : ''; return a >= 1e6 ? s+(a/1e6).toFixed(1)+'M' : a >= 1e3 ? s+(a/1e3).toFixed(0)+'K' : s+a; } } }
+                    },
+                    animation: { duration: 600, easing: 'easeOutQuart' }
+                }
+            });
+
+            // Users Area
+            const uCtx = document.getElementById('usersChart').getContext('2d');
+            const usersGradient = uCtx.createLinearGradient(0, 0, 0, 280);
+            usersGradient.addColorStop(0, 'rgba(99, 91, 255, 0.35)');
+            usersGradient.addColorStop(1, 'rgba(99, 91, 255, 0.02)');
+
+            usersChart = new Chart(uCtx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Active Users',
+                        data: simUsers.value,
                         borderColor: '#635bff',
-                        backgroundColor: revenueGradient,
-                        borderWidth: 3,
+                        backgroundColor: usersGradient,
+                        borderWidth: 2.5,
                         fill: true,
                         tension: 0.4,
-                        pointRadius: 5,
-                        pointBackgroundColor: '#635bff',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointHoverRadius: 7
-                    },
-                    {
-                        label: 'Net Profit',
-                        data: dashboardData.quarterly.netProfit,
-                        borderColor: function(context) {
-                            const chart = context.chart;
-                            const {ctx, chartArea} = chart;
-                            if (!chartArea) return '#ff5c5c';
-                            
-                            const gradient = ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0);
-                            gradient.addColorStop(0, '#ff5c5c');
-                            gradient.addColorStop(0.5, '#ff5c5c');
-                            gradient.addColorStop(0.5, '#00d4aa');
-                            gradient.addColorStop(1, '#00d4aa');
-                            return gradient;
-                        },
-                        backgroundColor: 'transparent',
-                        borderWidth: 3,
-                        fill: false,
-                        tension: 0.4,
-                        pointRadius: 5,
-                        pointBackgroundColor: profitColors,
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointHoverRadius: 7,
-                        segment: {
-                            borderColor: ctx => {
-                                const prev = ctx.p0.parsed.y;
-                                const curr = ctx.p1.parsed.y;
-                                if (prev < 0 && curr < 0) return '#ff5c5c';
-                                if (prev >= 0 && curr >= 0) return '#00d4aa';
-                                return '#f59e0b'; // transition color
-                            }
-                        }
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: { intersect: false, mode: 'index' },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return context.dataset.label + ': ' + formatCurrency(context.parsed.y);
-                            }
-                        }
-                    },
-                    annotation: {
-                        annotations: {
-                            breakeven: {
-                                type: 'line',
-                                xMin: 4,
-                                xMax: 4,
-                                borderColor: '#00d4aa',
-                                borderWidth: 2,
-                                borderDash: [6, 4],
-                                label: {
-                                    display: true,
-                                    content: 'Breakeven',
-                                    position: 'start',
-                                    backgroundColor: '#00d4aa',
-                                    color: '#fff',
-                                    font: { size: 11, weight: '600' },
-                                    padding: { x: 8, y: 4 },
-                                    borderRadius: 4
-                                }
-                            },
-                            zeroLine: {
-                                type: 'line',
-                                yMin: 0,
-                                yMax: 0,
-                                borderColor: '#e2e8f0',
-                                borderWidth: 1,
-                                borderDash: [4, 4]
-                            }
-                        }
-                    }
+                        pointRadius: 0,
+                        pointHoverRadius: 5,
+                        pointHoverBackgroundColor: '#635bff',
+                        pointHoverBorderColor: '#fff',
+                        pointHoverBorderWidth: 2
+                    }]
                 },
-                scales: {
-                    x: {
-                        grid: { display: false },
-                        ticks: { font: { weight: '500', size: 11 } }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { intersect: false, mode: 'index' },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { ...tooltipStyle, displayColors: false, callbacks: { label: ctx => `Users: ${ctx.parsed.y.toLocaleString()}` } }
                     },
-                    y: {
-                        grid: { color: 'rgba(0, 0, 0, 0.04)' },
-                        ticks: {
-                            callback: value => formatCurrency(value),
-                            font: { size: 11 }
-                        }
-                    }
-                },
-                animation: { duration: 1500, easing: 'easeOutQuart' }
-            }
-        });
-
-        // 2. Unit Economics Evolution (Combo Chart)
-        const unitEconCtx = document.getElementById('unitEconomicsChart').getContext('2d');
-        
-        new Chart(unitEconCtx, {
-            type: 'bar',
-            data: {
-                labels: dashboardData.quarterly.labels,
-                datasets: [
-                    {
-                        type: 'bar',
-                        label: 'CAC',
-                        data: dashboardData.quarterly.cac,
-                        backgroundColor: 'rgba(255, 92, 92, 0.8)',
-                        borderRadius: 6,
-                        barPercentage: 0.5,
-                        categoryPercentage: 0.6,
-                        yAxisID: 'y'
+                    scales: {
+                        x: { grid: { display: false }, ticks: { font: { size: 10 }, maxTicksLimit: 12 } },
+                        y: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 10 }, callback: v => v >= 1e6 ? (v/1e6).toFixed(1)+'M' : v >= 1e3 ? (v/1e3).toFixed(0)+'K' : v } }
                     },
-                    {
-                        type: 'line',
-                        label: 'LTV',
-                        data: dashboardData.quarterly.ltv,
-                        borderColor: '#00d4aa',
-                        backgroundColor: 'transparent',
-                        borderWidth: 3,
-                        tension: 0.4,
-                        pointRadius: 6,
-                        pointBackgroundColor: '#00d4aa',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 3,
-                        pointHoverRadius: 8,
-                        yAxisID: 'y1'
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: { intersect: false, mode: 'index' },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return context.dataset.label + ': $' + context.parsed.y.toFixed(2);
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        grid: { display: false },
-                        ticks: { font: { weight: '500', size: 11 } }
-                    },
-                    y: {
-                        type: 'linear',
-                        position: 'left',
-                        title: { display: true, text: 'CAC ($)', font: { size: 11 } },
-                        grid: { color: 'rgba(0, 0, 0, 0.04)' },
-                        min: 0,
-                        max: 15,
-                        ticks: {
-                            callback: value => '$' + value,
-                            font: { size: 11 }
-                        }
-                    },
-                    y1: {
-                        type: 'linear',
-                        position: 'right',
-                        title: { display: true, text: 'LTV ($)', font: { size: 11 } },
-                        grid: { display: false },
-                        min: 80,
-                        max: 160,
-                        ticks: {
-                            callback: value => '$' + value,
-                            font: { size: 11 }
-                        }
-                    }
-                },
-                animation: { duration: 1500, easing: 'easeOutQuart' }
-            },
-            plugins: [{
-                afterDatasetsDraw: function(chart) {
-                    const ctx = chart.ctx;
-                    chart.data.datasets.forEach((dataset, i) => {
-                        const meta = chart.getDatasetMeta(i);
-                        if (dataset.type === 'line' || (!dataset.type && i === 1)) {
-                            meta.data.forEach((element, index) => {
-                                const value = dataset.data[index];
-                                ctx.fillStyle = '#0a2540';
-                                ctx.font = 'bold 10px Inter';
-                                ctx.textAlign = 'center';
-                                ctx.fillText('$' + value, element.x, element.y - 12);
-                            });
-                        }
-                    });
+                    animation: { duration: 600, easing: 'easeOutQuart' }
                 }
-            }]
-        });
+            });
+        };
 
-        // 3. Retention Curve
-        const retentionCtx = document.getElementById('retentionChart').getContext('2d');
-        
-        const retentionGradient = retentionCtx.createLinearGradient(0, 0, 0, 320);
-        retentionGradient.addColorStop(0, 'rgba(0, 212, 170, 0.25)');
-        retentionGradient.addColorStop(1, 'rgba(0, 212, 170, 0.02)');
+        // Update charts reactively
+        const updateCharts = () => {
+            if (!revenueChart) return;
 
-        new Chart(retentionCtx, {
-            type: 'line',
-            data: {
-                labels: dashboardData.monthly.labels,
-                datasets: [{
-                    label: 'Retention',
-                    data: dashboardData.monthly.retention,
+            // Revenue chart
+            revenueChart.data.datasets[0].data = simDonations.value;
+            revenueChart.data.datasets[1].data = simPartners.value;
+            revenueChart.data.datasets[2].data = simSubs.value;
+            revenueChart.data.datasets[3].data = simAmazon.value;
+            revenueChart.data.datasets[4].data = simAffiliates.value;
+            revenueChart.update('active');
+
+            // Profit chart
+            profitChart.data.datasets[0].data = simProfit.value;
+            // Update breakeven annotation
+            const beMonth = breakevenMonth.value;
+            if (beMonth) {
+                profitChart.options.plugins.annotation.annotations.breakeven = {
+                    type: 'line',
+                    xMin: beMonth - 1,
+                    xMax: beMonth - 1,
                     borderColor: '#00d4aa',
-                    backgroundColor: retentionGradient,
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.4,
-                    cubicInterpolationMode: 'monotone',
-                    pointRadius: 0,
-                    pointHoverRadius: 6,
-                    pointHoverBackgroundColor: '#00d4aa',
-                    pointHoverBorderColor: '#fff',
-                    pointHoverBorderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: { intersect: false, mode: 'index' },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return 'Retention: ' + context.parsed.y + '%';
-                            }
-                        }
-                    },
-                    annotation: {
-                        annotations: {
-                            plateau: {
-                                type: 'line',
-                                yMin: 35,
-                                yMax: 35,
-                                borderColor: 'rgba(0, 212, 170, 0.5)',
-                                borderWidth: 1,
-                                borderDash: [6, 4],
-                                label: {
-                                    display: true,
-                                    content: '35% plateau',
-                                    position: 'end',
-                                    backgroundColor: 'rgba(0, 212, 170, 0.1)',
-                                    color: '#00d4aa',
-                                    font: { size: 10, weight: '500' },
-                                    padding: { x: 6, y: 3 },
-                                    borderRadius: 4
-                                }
-                            }
-                        }
+                    borderWidth: 2,
+                    borderDash: [5, 3],
+                    label: {
+                        display: true,
+                        content: `BE: M${beMonth}`,
+                        position: 'start',
+                        backgroundColor: '#00d4aa',
+                        color: '#fff',
+                        font: { size: 10, weight: '600', family: "'Inter'" },
+                        padding: { x: 6, y: 3 },
+                        borderRadius: 4
                     }
-                },
-                scales: {
-                    x: {
-                        grid: { display: false },
-                        ticks: {
-                            font: { size: 10 },
-                            maxTicksLimit: 12
-                        }
-                    },
-                    y: {
-                        grid: { color: 'rgba(0, 0, 0, 0.04)' },
-                        min: 0,
-                        max: 100,
-                        ticks: {
-                            callback: value => value + '%',
-                            font: { size: 11 },
-                            stepSize: 20
-                        }
-                    }
-                },
-                animation: { duration: 2000, easing: 'easeOutQuart' }
+                };
+            } else {
+                delete profitChart.options.plugins.annotation.annotations.breakeven;
             }
+            profitChart.update('active');
+
+            // Users chart
+            usersChart.data.datasets[0].data = simUsers.value;
+            usersChart.update('active');
+        };
+
+        // Watch all sliders
+        watch([multiplier_donations, multiplier_partners, multiplier_subs, retention_factor, viral_factor], updateCharts);
+
+        onMounted(() => {
+            nextTick(() => initCharts());
         });
 
-        // 4. User Growth Chart
-        const userGrowthCtx = document.getElementById('userGrowthChart').getContext('2d');
-        
-        const userGradient = userGrowthCtx.createLinearGradient(0, 0, 0, 320);
-        userGradient.addColorStop(0, 'rgba(99, 91, 255, 0.4)');
-        userGradient.addColorStop(0.5, 'rgba(99, 91, 255, 0.15)');
-        userGradient.addColorStop(1, 'rgba(99, 91, 255, 0.02)');
-
-        new Chart(userGrowthCtx, {
-            type: 'line',
-            data: {
-                labels: dashboardData.monthly.labels,
-                datasets: [{
-                    label: 'Users',
-                    data: dashboardData.monthly.users,
-                    borderColor: '#635bff',
-                    backgroundColor: userGradient,
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.4,
-                    pointRadius: 0,
-                    pointHoverRadius: 6,
-                    pointHoverBackgroundColor: '#635bff',
-                    pointHoverBorderColor: '#fff',
-                    pointHoverBorderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: { intersect: false, mode: 'index' },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return formatNumber(context.parsed.y) + ' users';
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        grid: { display: false },
-                        ticks: {
-                            font: { size: 10 },
-                            maxTicksLimit: 12
-                        }
-                    },
-                    y: {
-                        grid: { color: 'rgba(0, 0, 0, 0.04)' },
-                        ticks: {
-                            callback: value => formatNumber(value),
-                            font: { size: 11 }
-                        }
-                    }
-                },
-                animation: { duration: 2000, easing: 'easeOutQuart' }
-            }
-        });
-    </script>
+        return {
+            multiplier_donations, multiplier_partners, multiplier_subs,
+            retention_factor, viral_factor,
+            simUsers, simProfit, simRevenueTotal,
+            totalRevenue, totalProfit, breakevenMonth,
+            revenueDelta, profitDelta, usersDelta,
+            formatMoney, formatNum,
+            resetAll, applyScenario
+        };
+    }
+}).mount('#app');
+</script>
 </body>
 </html>

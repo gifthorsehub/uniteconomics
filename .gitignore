@@ -1,0 +1,10 @@
+# Tables
+*.xlsx
+*.xls
+*.csv
+
+# Text / reports
+*.txt
+
+# Local backup
+index.html.local

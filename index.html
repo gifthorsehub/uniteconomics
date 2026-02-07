@@ -3,667 +3,639 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GiftHorse - Unit Economics Simulator 2.0</title>
+    <title>GiftHorse — Unit Economics Simulator 3.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] }
-                }
-            }
-        }
+        tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } } }
     </script>
     <style>
-        * { font-family: 'Inter', system-ui, sans-serif; }
-        body { background: #f7f8fa; }
-
-        /* Custom range slider */
-        input[type="range"] {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 100%;
-            height: 6px;
-            border-radius: 3px;
-            background: #e2e8f0;
-            outline: none;
-        }
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #635bff;
-            cursor: pointer;
-            border: 3px solid #fff;
-            box-shadow: 0 1px 4px rgba(99,91,255,0.4);
-            transition: transform 0.15s ease, box-shadow 0.15s ease;
-        }
-        input[type="range"]::-webkit-slider-thumb:hover {
-            transform: scale(1.15);
-            box-shadow: 0 2px 8px rgba(99,91,255,0.5);
-        }
-        input[type="range"]::-moz-range-thumb {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #635bff;
-            cursor: pointer;
-            border: 3px solid #fff;
-            box-shadow: 0 1px 4px rgba(99,91,255,0.4);
-        }
-
-        .fade-up {
-            animation: fadeUp 0.5s ease-out forwards;
-            opacity: 0;
-            transform: translateY(16px);
-        }
-        .fade-up:nth-child(1) { animation-delay: 0.05s; }
-        .fade-up:nth-child(2) { animation-delay: 0.1s; }
-        .fade-up:nth-child(3) { animation-delay: 0.15s; }
-        .fade-up:nth-child(4) { animation-delay: 0.2s; }
-
-        @keyframes fadeUp {
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .sidebar-scroll::-webkit-scrollbar { width: 4px; }
-        .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
-        .sidebar-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
+        *{font-family:'Inter',system-ui,sans-serif}body{background:#f7f8fa}
+        input[type="range"]{-webkit-appearance:none;appearance:none;width:100%;height:5px;border-radius:3px;background:#e2e8f0;outline:none}
+        input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;background:#635bff;cursor:pointer;border:3px solid #fff;box-shadow:0 1px 4px rgba(99,91,255,.4);transition:transform .15s}
+        input[type="range"]::-webkit-slider-thumb:hover{transform:scale(1.15);box-shadow:0 2px 8px rgba(99,91,255,.5)}
+        input[type="range"]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#635bff;cursor:pointer;border:3px solid #fff;box-shadow:0 1px 4px rgba(99,91,255,.4)}
+        .card{animation:fu .5s ease-out forwards;opacity:0;transform:translateY(14px)}
+        .card:nth-child(1){animation-delay:.05s}.card:nth-child(2){animation-delay:.1s}.card:nth-child(3){animation-delay:.15s}.card:nth-child(4){animation-delay:.2s}
+        .card:nth-child(5){animation-delay:.25s}.card:nth-child(6){animation-delay:.3s}.card:nth-child(7){animation-delay:.35s}.card:nth-child(8){animation-delay:.4s}
+        @keyframes fu{to{opacity:1;transform:translateY(0)}}
+        .sb::-webkit-scrollbar{width:4px}.sb::-webkit-scrollbar-track{background:transparent}.sb::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:2px}
     </style>
 </head>
 <body class="min-h-screen">
 <div id="app">
-    <div class="flex flex-col lg:flex-row min-h-screen">
+<div class="flex flex-col lg:flex-row min-h-screen">
 
-        <!-- Sidebar -->
-        <aside class="w-full lg:w-80 xl:w-96 bg-white border-b lg:border-b-0 lg:border-r border-gray-200 flex-shrink-0">
-            <div class="lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto sidebar-scroll">
-                <!-- Sidebar Header -->
-                <div class="px-6 pt-6 pb-4 border-b border-gray-100">
-                    <div class="flex items-center gap-2.5 mb-1">
-                        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-[#635bff] to-purple-500 flex items-center justify-center">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <span class="text-lg font-bold text-gray-900">GiftHorse</span>
-                            <span class="ml-1.5 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-[#635bff]/10 text-[#635bff]">SIM 2.0</span>
-                        </div>
-                    </div>
-                    <p class="text-xs text-gray-400 mt-2">Unit Economics Simulator</p>
+<!-- ═══════ SIDEBAR ═══════ -->
+<aside class="w-full lg:w-80 xl:w-[340px] bg-white border-b lg:border-b-0 lg:border-r border-gray-200 flex-shrink-0">
+<div class="lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto sb">
+    <!-- Logo -->
+    <div class="px-5 pt-5 pb-3 border-b border-gray-100">
+        <div class="flex items-center gap-2.5 mb-1">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#635bff] to-purple-500 flex items-center justify-center">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
+            </div>
+            <span class="text-lg font-bold text-gray-900">GiftHorse</span>
+            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#635bff]/10 text-[#635bff]">SIM 3.0</span>
+        </div>
+        <p class="text-[11px] text-gray-400">Unit Economics Simulator &bull; 28 months</p>
+    </div>
+
+    <div class="px-5 py-4 space-y-5">
+        <!-- Group 1: User Growth -->
+        <div>
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-xs font-semibold text-gray-900 uppercase tracking-wider">User Growth</h3>
+                <button @click="resetAll" class="text-[10px] font-medium text-[#635bff] hover:text-[#4b44d4] flex items-center gap-0.5">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    Reset All
+                </button>
+            </div>
+            <div class="space-y-3.5">
+                <div>
+                    <div class="flex justify-between mb-1"><span class="text-[11px] font-medium text-gray-500">Retention M1</span><span class="text-[11px] font-bold tabular-nums" :class="retention_m1==35?'text-gray-400':'text-[#635bff]'">{{retention_m1}}%</span></div>
+                    <input type="range" v-model.number="retention_m1" min="15" max="60" step="1">
                 </div>
-
-                <!-- Controls -->
-                <div class="px-6 py-5">
-                    <div class="flex items-center justify-between mb-5">
-                        <h2 class="text-sm font-semibold text-gray-900">Simulation Parameters</h2>
-                        <button @click="resetAll" class="text-xs font-medium text-[#635bff] hover:text-[#4b44d4] transition-colors flex items-center gap-1">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                            Reset
-                        </button>
-                    </div>
-
-                    <div class="space-y-5">
-                        <!-- Slider: Donations -->
-                        <div>
-                            <div class="flex items-center justify-between mb-2">
-                                <label class="text-xs font-medium text-gray-600 flex items-center gap-1.5">
-                                    <span class="w-2.5 h-2.5 rounded-sm bg-[#635bff]"></span>
-                                    Donation Conversion
-                                </label>
-                                <span class="text-xs font-bold tabular-nums" :class="multiplier_donations === 1 ? 'text-gray-400' : 'text-[#635bff]'">x{{ multiplier_donations.toFixed(2) }}</span>
-                            </div>
-                            <input type="range" v-model.number="multiplier_donations" min="0.5" max="2.0" step="0.05">
-                        </div>
-
-                        <!-- Slider: Partners -->
-                        <div>
-                            <div class="flex items-center justify-between mb-2">
-                                <label class="text-xs font-medium text-gray-600 flex items-center gap-1.5">
-                                    <span class="w-2.5 h-2.5 rounded-sm bg-[#8b5cf6]"></span>
-                                    Partner Revenue
-                                </label>
-                                <span class="text-xs font-bold tabular-nums" :class="multiplier_partners === 1 ? 'text-gray-400' : 'text-[#635bff]'">x{{ multiplier_partners.toFixed(2) }}</span>
-                            </div>
-                            <input type="range" v-model.number="multiplier_partners" min="0.5" max="2.0" step="0.05">
-                        </div>
-
-                        <!-- Slider: Subscriptions -->
-                        <div>
-                            <div class="flex items-center justify-between mb-2">
-                                <label class="text-xs font-medium text-gray-600 flex items-center gap-1.5">
-                                    <span class="w-2.5 h-2.5 rounded-sm bg-[#00d4aa]"></span>
-                                    Subscription Uptake
-                                </label>
-                                <span class="text-xs font-bold tabular-nums" :class="multiplier_subs === 1 ? 'text-gray-400' : 'text-[#635bff]'">x{{ multiplier_subs.toFixed(2) }}</span>
-                            </div>
-                            <input type="range" v-model.number="multiplier_subs" min="0.5" max="2.0" step="0.05">
-                        </div>
-
-                        <!-- Slider: Retention -->
-                        <div>
-                            <div class="flex items-center justify-between mb-2">
-                                <label class="text-xs font-medium text-gray-600 flex items-center gap-1.5">
-                                    <span class="w-2.5 h-2.5 rounded-sm bg-[#f59e0b]"></span>
-                                    Retention Factor
-                                </label>
-                                <span class="text-xs font-bold tabular-nums" :class="retention_factor === 1 ? 'text-gray-400' : 'text-[#635bff]'">x{{ retention_factor.toFixed(2) }}</span>
-                            </div>
-                            <input type="range" v-model.number="retention_factor" min="0.5" max="2.0" step="0.05">
-                        </div>
-
-                        <!-- Slider: Viral -->
-                        <div>
-                            <div class="flex items-center justify-between mb-2">
-                                <label class="text-xs font-medium text-gray-600 flex items-center gap-1.5">
-                                    <span class="w-2.5 h-2.5 rounded-sm bg-[#ec4899]"></span>
-                                    Viral Factor (K)
-                                </label>
-                                <span class="text-xs font-bold tabular-nums" :class="viral_factor === 1 ? 'text-gray-400' : 'text-[#635bff]'">x{{ viral_factor.toFixed(2) }}</span>
-                            </div>
-                            <input type="range" v-model.number="viral_factor" min="0.5" max="2.0" step="0.05">
-                        </div>
-                    </div>
-
-                    <!-- Scenario presets -->
-                    <div class="mt-6 pt-5 border-t border-gray-100">
-                        <p class="text-xs font-semibold text-gray-900 mb-3">Quick Scenarios</p>
-                        <div class="grid grid-cols-2 gap-2">
-                            <button @click="applyScenario('pessimistic')" class="text-xs font-medium px-3 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-red-300 hover:text-red-600 hover:bg-red-50 transition-all">
-                                😟 Pessimistic
-                            </button>
-                            <button @click="applyScenario('base')" class="text-xs font-medium px-3 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-gray-400 hover:bg-gray-50 transition-all">
-                                📊 Base Case
-                            </button>
-                            <button @click="applyScenario('optimistic')" class="text-xs font-medium px-3 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-green-300 hover:text-green-600 hover:bg-green-50 transition-all">
-                                🚀 Optimistic
-                            </button>
-                            <button @click="applyScenario('viral')" class="text-xs font-medium px-3 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-purple-300 hover:text-purple-600 hover:bg-purple-50 transition-all">
-                                🔥 Viral Growth
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Summary -->
-                    <div class="mt-5 pt-5 border-t border-gray-100">
-                        <p class="text-xs font-semibold text-gray-900 mb-3">Impact Summary</p>
-                        <div class="space-y-2">
-                            <div class="flex justify-between text-xs">
-                                <span class="text-gray-500">Revenue Δ</span>
-                                <span class="font-semibold tabular-nums" :class="revenueDelta >= 0 ? 'text-[#00d4aa]' : 'text-red-500'">
-                                    {{ revenueDelta >= 0 ? '+' : '' }}{{ revenueDelta.toFixed(1) }}%
-                                </span>
-                            </div>
-                            <div class="flex justify-between text-xs">
-                                <span class="text-gray-500">Profit Δ</span>
-                                <span class="font-semibold tabular-nums" :class="profitDelta >= 0 ? 'text-[#00d4aa]' : 'text-red-500'">
-                                    {{ profitDelta >= 0 ? '+' : '' }}{{ profitDelta.toFixed(1) }}%
-                                </span>
-                            </div>
-                            <div class="flex justify-between text-xs">
-                                <span class="text-gray-500">Users Δ</span>
-                                <span class="font-semibold tabular-nums" :class="usersDelta >= 0 ? 'text-[#00d4aa]' : 'text-red-500'">
-                                    {{ usersDelta >= 0 ? '+' : '' }}{{ usersDelta.toFixed(1) }}%
-                                </span>
-                            </div>
-                        </div>
-                    </div>
+                <div>
+                    <div class="flex justify-between mb-1"><span class="text-[11px] font-medium text-gray-500">Retention M2+</span><span class="text-[11px] font-bold tabular-nums" :class="retention_m2==85?'text-gray-400':'text-[#635bff]'">{{retention_m2}}%</span></div>
+                    <input type="range" v-model.number="retention_m2" min="50" max="98" step="1">
+                </div>
+                <div>
+                    <div class="flex justify-between mb-1"><span class="text-[11px] font-medium text-gray-500">Invite &rarr; Active</span><span class="text-[11px] font-bold tabular-nums" :class="invite_conv==20?'text-gray-400':'text-[#635bff]'">{{invite_conv}}%</span></div>
+                    <input type="range" v-model.number="invite_conv" min="5" max="50" step="1">
+                </div>
+                <div>
+                    <div class="flex justify-between mb-1"><span class="text-[11px] font-medium text-gray-500">Invites / User / mo</span><span class="text-[11px] font-bold tabular-nums" :class="invites_per_user==0.8?'text-gray-400':'text-[#635bff]'">{{invites_per_user.toFixed(1)}}</span></div>
+                    <input type="range" v-model.number="invites_per_user" min="0.1" max="3.0" step="0.1">
                 </div>
             </div>
-        </aside>
+        </div>
 
-        <!-- Main Content -->
-        <div class="flex-1 min-w-0">
-            <!-- Top Bar -->
-            <div class="bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8 py-4">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                    <div>
-                        <h1 class="text-xl font-semibold text-gray-900">Unit Economics Simulator</h1>
-                        <p class="text-sm text-gray-500">24-month forecast &bull; Adjust parameters to explore scenarios</p>
+        <!-- Group 2: Monetization -->
+        <div class="pt-4 border-t border-gray-100">
+            <h3 class="text-xs font-semibold text-gray-900 uppercase tracking-wider mb-3">Monetization</h3>
+            <div class="space-y-3">
+                <div v-for="ch in channels" :key="ch.key">
+                    <div class="flex justify-between mb-1">
+                        <span class="text-[11px] font-medium text-gray-500 flex items-center gap-1"><span class="w-2 h-2 rounded-sm" :style="{background:ch.color}"></span>{{ch.label}}</span>
+                        <span class="text-[11px] font-bold tabular-nums" :class="convMultipliers[ch.key]==1?'text-gray-400':'text-[#635bff]'">x{{convMultipliers[ch.key].toFixed(2)}}</span>
                     </div>
-                    <div v-if="breakevenMonth !== null" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#00d4aa]/10 text-[#00d4aa] text-sm font-semibold border border-[#00d4aa]/20">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                        Breakeven: Month {{ breakevenMonth }}
-                    </div>
-                    <div v-else class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-50 text-red-500 text-sm font-semibold border border-red-200">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
-                        No breakeven in 24 months
-                    </div>
+                    <input type="range" v-model.number="convMultipliers[ch.key]" min="0.5" max="3.0" step="0.05">
                 </div>
             </div>
+        </div>
 
-            <div class="px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-                <!-- KPI Cards -->
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                    <div class="fade-up bg-white rounded-xl p-4 sm:p-5 shadow-sm border border-gray-100">
-                        <p class="text-xs font-medium text-gray-500 mb-1">Total Revenue (24m)</p>
-                        <p class="text-xl sm:text-2xl font-bold text-gray-900 tabular-nums">{{ formatMoney(totalRevenue) }}</p>
-                        <p class="text-[11px] mt-1 tabular-nums" :class="revenueDelta >= 0 ? 'text-[#00d4aa]' : 'text-red-500'">
-                            {{ revenueDelta >= 0 ? '↑' : '↓' }} {{ Math.abs(revenueDelta).toFixed(1) }}% vs base
-                        </p>
-                    </div>
-                    <div class="fade-up bg-white rounded-xl p-4 sm:p-5 shadow-sm border border-gray-100">
-                        <p class="text-xs font-medium text-gray-500 mb-1">Net Profit (24m)</p>
-                        <p class="text-xl sm:text-2xl font-bold tabular-nums" :class="totalProfit >= 0 ? 'text-[#00d4aa]' : 'text-red-500'">{{ formatMoney(totalProfit) }}</p>
-                        <p class="text-[11px] mt-1 tabular-nums" :class="profitDelta >= 0 ? 'text-[#00d4aa]' : 'text-red-500'">
-                            {{ profitDelta >= 0 ? '↑' : '↓' }} {{ Math.abs(profitDelta).toFixed(1) }}% vs base
-                        </p>
-                    </div>
-                    <div class="fade-up bg-white rounded-xl p-4 sm:p-5 shadow-sm border border-gray-100">
-                        <p class="text-xs font-medium text-gray-500 mb-1">Peak Users (M24)</p>
-                        <p class="text-xl sm:text-2xl font-bold text-gray-900 tabular-nums">{{ formatNum(simUsers[23]) }}</p>
-                        <p class="text-[11px] text-gray-400 mt-1">Active user base</p>
-                    </div>
-                    <div class="fade-up bg-white rounded-xl p-4 sm:p-5 shadow-sm border border-gray-100">
-                        <p class="text-xs font-medium text-gray-500 mb-1">Breakeven Month</p>
-                        <p class="text-xl sm:text-2xl font-bold tabular-nums" :class="breakevenMonth ? 'text-[#00d4aa]' : 'text-red-500'">
-                            {{ breakevenMonth ? 'M' + breakevenMonth : 'N/A' }}
-                        </p>
-                        <p class="text-[11px] mt-1" :class="breakevenMonth ? 'text-[#00d4aa]' : 'text-red-500'">
-                            {{ breakevenMonth ? 'Target reached' : 'Not reached' }}
-                        </p>
-                    </div>
-                </div>
+        <!-- Scenarios -->
+        <div class="pt-4 border-t border-gray-100">
+            <h3 class="text-xs font-semibold text-gray-900 mb-2">Quick Scenarios</h3>
+            <div class="grid grid-cols-2 gap-1.5">
+                <button @click="applyScenario('pessimistic')" class="text-[11px] font-medium px-2.5 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:border-red-300 hover:text-red-600 hover:bg-red-50 transition-all">Pessimistic</button>
+                <button @click="applyScenario('base')" class="text-[11px] font-medium px-2.5 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:border-gray-400 hover:bg-gray-50 transition-all">Base Case</button>
+                <button @click="applyScenario('optimistic')" class="text-[11px] font-medium px-2.5 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:border-green-300 hover:text-green-600 hover:bg-green-50 transition-all">Optimistic</button>
+                <button @click="applyScenario('viral')" class="text-[11px] font-medium px-2.5 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:border-purple-300 hover:text-purple-600 hover:bg-purple-50 transition-all">Viral Boom</button>
+            </div>
+        </div>
 
-                <!-- Charts -->
-                <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-5">
-                    <!-- Revenue Breakdown -->
-                    <div class="bg-white rounded-xl p-5 sm:p-6 shadow-sm border border-gray-100">
-                        <div class="flex items-center justify-between mb-5">
-                            <div>
-                                <h3 class="text-sm font-semibold text-gray-900">Revenue Breakdown by Channel</h3>
-                                <p class="text-xs text-gray-500 mt-0.5">Monthly stacked view — 24 months</p>
-                            </div>
-                        </div>
-                        <div class="h-64 sm:h-72">
-                            <canvas id="revenueChart"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- Profit / Loss -->
-                    <div class="bg-white rounded-xl p-5 sm:p-6 shadow-sm border border-gray-100">
-                        <div class="flex items-center justify-between mb-5">
-                            <div>
-                                <h3 class="text-sm font-semibold text-gray-900">Profit vs Loss Dynamics</h3>
-                                <p class="text-xs text-gray-500 mt-0.5">Monthly net profit with breakeven marker</p>
-                            </div>
-                        </div>
-                        <div class="h-64 sm:h-72">
-                            <canvas id="profitChart"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- User Growth — full width -->
-                    <div class="xl:col-span-2 bg-white rounded-xl p-5 sm:p-6 shadow-sm border border-gray-100">
-                        <div class="flex items-center justify-between mb-5">
-                            <div>
-                                <h3 class="text-sm font-semibold text-gray-900">User Growth Scenario</h3>
-                                <p class="text-xs text-gray-500 mt-0.5">Active user base projection — influenced by Retention & Viral factors</p>
-                            </div>
-                            <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-[#635bff]/10 text-[#635bff]">
-                                {{ formatNum(simUsers[23]) }} users by M24
-                            </span>
-                        </div>
-                        <div class="h-56 sm:h-64">
-                            <canvas id="usersChart"></canvas>
-                        </div>
-                    </div>
-                </div>
+        <!-- Impact -->
+        <div class="pt-4 border-t border-gray-100 pb-2">
+            <h3 class="text-xs font-semibold text-gray-900 mb-2">Impact vs Base</h3>
+            <div class="space-y-1.5">
+                <div class="flex justify-between text-[11px]"><span class="text-gray-500">Revenue</span><span class="font-semibold tabular-nums" :class="revDelta>=0?'text-[#00d4aa]':'text-red-500'">{{revDelta>=0?'+':''}}{{revDelta.toFixed(1)}}%</span></div>
+                <div class="flex justify-between text-[11px]"><span class="text-gray-500">Profit</span><span class="font-semibold tabular-nums" :class="profDelta>=0?'text-[#00d4aa]':'text-red-500'">{{profDelta>=0?'+':''}}{{profDelta.toFixed(1)}}%</span></div>
+                <div class="flex justify-between text-[11px]"><span class="text-gray-500">Users</span><span class="font-semibold tabular-nums" :class="userDelta>=0?'text-[#00d4aa]':'text-red-500'">{{userDelta>=0?'+':''}}{{userDelta.toFixed(1)}}%</span></div>
             </div>
         </div>
     </div>
 </div>
+</aside>
+
+<!-- ═══════ MAIN ═══════ -->
+<div class="flex-1 min-w-0">
+    <!-- Top bar -->
+    <div class="bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8 py-3">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div>
+                <h1 class="text-lg font-semibold text-gray-900">Unit Economics Dashboard</h1>
+                <p class="text-xs text-gray-500">28-month forecast &bull; Dec 2025 — Apr 2028 &bull; 6 revenue channels</p>
+            </div>
+            <div v-if="breakevenMonth" class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#00d4aa]/10 text-[#00d4aa] text-xs font-semibold border border-[#00d4aa]/20">
+                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                Breakeven: M{{breakevenMonth}}
+            </div>
+            <div v-else class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-red-50 text-red-500 text-xs font-semibold border border-red-200">
+                No breakeven in 28 months
+            </div>
+        </div>
+    </div>
+
+    <div class="px-4 sm:px-6 lg:px-8 py-5 space-y-5">
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div class="card bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                <p class="text-[11px] font-medium text-gray-500 mb-0.5">Total Revenue (28m)</p>
+                <p class="text-xl font-bold text-gray-900 tabular-nums">{{fmtMoney(totalRevenue)}}</p>
+                <p class="text-[10px] mt-1 tabular-nums" :class="revDelta>=0?'text-[#00d4aa]':'text-red-500'">{{revDelta>=0?'↑':'↓'}} {{Math.abs(revDelta).toFixed(1)}}%</p>
+            </div>
+            <div class="card bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                <p class="text-[11px] font-medium text-gray-500 mb-0.5">Net Profit (28m)</p>
+                <p class="text-xl font-bold tabular-nums" :class="totalProfit>=0?'text-[#00d4aa]':'text-red-500'">{{fmtMoney(totalProfit)}}</p>
+                <p class="text-[10px] mt-1 tabular-nums" :class="profDelta>=0?'text-[#00d4aa]':'text-red-500'">{{profDelta>=0?'↑':'↓'}} {{Math.abs(profDelta).toFixed(1)}}%</p>
+            </div>
+            <div class="card bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                <p class="text-[11px] font-medium text-gray-500 mb-0.5">Breakeven Month</p>
+                <p class="text-xl font-bold tabular-nums" :class="breakevenMonth?'text-[#00d4aa]':'text-red-500'">{{breakevenMonth?'M'+breakevenMonth:'N/A'}}</p>
+                <p class="text-[10px] text-gray-400 mt-1">{{breakevenMonth?'Net profit > 0':'Not reached'}}</p>
+            </div>
+            <div class="card bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                <p class="text-[11px] font-medium text-gray-500 mb-0.5">Avg UAC</p>
+                <p class="text-xl font-bold text-gray-900 tabular-nums">${{avgUAC.toFixed(2)}}</p>
+                <p class="text-[10px] text-gray-400 mt-1">Blended acq. cost</p>
+            </div>
+            <div class="card bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                <p class="text-[11px] font-medium text-gray-500 mb-0.5">Peak Users (M28)</p>
+                <p class="text-xl font-bold text-gray-900 tabular-nums">{{fmtNum(peakUsers)}}</p>
+                <p class="text-[10px] mt-1 tabular-nums" :class="userDelta>=0?'text-[#00d4aa]':'text-red-500'">{{userDelta>=0?'↑':'↓'}} {{Math.abs(userDelta).toFixed(1)}}%</p>
+            </div>
+            <div class="card bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                <p class="text-[11px] font-medium text-gray-500 mb-0.5">Paying Users</p>
+                <p class="text-xl font-bold text-gray-900 tabular-nums">{{payingUsersPct}}%</p>
+                <p class="text-[10px] text-gray-400 mt-1">buyers / total users</p>
+            </div>
+            <div class="card bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                <p class="text-[11px] font-medium text-gray-500 mb-0.5">Viral Share</p>
+                <p class="text-xl font-bold text-[#8b5cf6] tabular-nums">{{viralPct}}%</p>
+                <p class="text-[10px] text-gray-400 mt-1">of total users at M28</p>
+            </div>
+            <div class="card bg-gradient-to-br from-[#635bff] to-purple-600 rounded-xl p-4 shadow-md text-white">
+                <p class="text-[11px] font-medium text-white/70 mb-0.5">LTV / UAC</p>
+                <p class="text-xl font-bold tabular-nums">{{ltvUac}}x</p>
+                <p class="text-[10px] text-white/50 mt-1">Unit economics ratio</p>
+            </div>
+        </div>
+
+        <!-- Charts 2x2 -->
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+                <h3 class="text-sm font-semibold text-gray-900 mb-0.5">Revenue by Channel</h3>
+                <p class="text-[11px] text-gray-500 mb-4">Monthly stacked — 6 channels</p>
+                <div class="h-60 sm:h-68"><canvas id="chRevenue"></canvas></div>
+            </div>
+            <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+                <h3 class="text-sm font-semibold text-gray-900 mb-0.5">Gross Profit by Channel</h3>
+                <p class="text-[11px] text-gray-500 mb-4">Margin contribution per source</p>
+                <div class="h-60 sm:h-68"><canvas id="chGP"></canvas></div>
+            </div>
+            <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+                <h3 class="text-sm font-semibold text-gray-900 mb-0.5">Path to Profitability</h3>
+                <p class="text-[11px] text-gray-500 mb-4">Monthly net profit — breakeven marker</p>
+                <div class="h-60 sm:h-68"><canvas id="chProfit"></canvas></div>
+            </div>
+            <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+                <h3 class="text-sm font-semibold text-gray-900 mb-0.5">Expenses Breakdown</h3>
+                <p class="text-[11px] text-gray-500 mb-4">Fixed, Acquisition, Bizdev, Taxes</p>
+                <div class="h-60 sm:h-68"><canvas id="chExpenses"></canvas></div>
+            </div>
+        </div>
+
+        <!-- Full width: Users -->
+        <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-900 mb-0.5">User Growth</h3>
+                    <p class="text-[11px] text-gray-500">Total, Organic, Viral — 28 months</p>
+                </div>
+                <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-[#635bff]/10 text-[#635bff]">{{fmtNum(peakUsers)}} by M28</span>
+            </div>
+            <div class="h-56 sm:h-64"><canvas id="chUsers"></canvas></div>
+        </div>
+
+        <!-- Full width: UAC Trend -->
+        <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-900 mb-0.5">UAC Trend</h3>
+                    <p class="text-[11px] text-gray-500">Effective acquisition cost — decreases with viral growth</p>
+                </div>
+                <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-[#f59e0b]/10 text-[#f59e0b]">${{simMonthlyUAC[27].toFixed(2)}} at M28</span>
+            </div>
+            <div class="h-56 sm:h-64"><canvas id="chUAC"></canvas></div>
+        </div>
+    </div>
+</div>
+</div>
+</div>
 
 <script>
-const { createApp, ref, computed, watch, onMounted, nextTick } = Vue;
+const { createApp, ref, reactive, computed, watch, onMounted, nextTick } = Vue;
 
 createApp({
-    setup() {
-        // ───── Base Data ─────
-        const baseData = {
-            revenue_donations: [11000,20735,37966,68270,98816,129606,160643,191928,230348,267691,305332,343275,381878,421503,462521,505325,550336,598015,648875,703490,762516,826704,896919,974171],
-            revenue_amazon: [0,0,0,7680,11117,14581,18072,21592,25914,30115,34350,38618,42961,47419,52034,56849,61913,67277,72998,79143,85783,93004,100903,109594],
-            revenue_affiliates: [0,433,1633,7680,11117,14581,18072,21592,25914,30115,34350,38618,42961,47419,52034,56849,61913,67277,72998,79143,85783,93004,100903,109594],
-            revenue_partners: [0,39,145,43707,56299,68993,81788,94685,114095,128771,144289,159931,175834,192139,208987,226530,244930,264364,285029,307147,330968,356778,384908,415744],
-            revenue_subs: [0,0,0,574,1247,1963,2703,6462,15510,26562,38201,55646,70323,80069,87850,95694,103797,112207,120979,130172,139853,150095,160982,172609],
-            costs_fixed: Array(24).fill(70000),
-            costs_acq_per_user: 4.3,
-            users_base: [2200,4147,7593,13654,19763,25921,32129,38386,46070,53538,61066,68655,76342,84168,92173,100403,108904,117729,126932,136578,146735,157480,168903,181103]
-        };
+setup() {
+// ═══════════════════════════════════════════════
+//  BASE DATA — extracted from CSV (28 months)
+// ═══════════════════════════════════════════════
+const B = {
+    // Revenue per channel
+    rev_donations: [11000,20735,37966,68270,98816,129606,160643,191928,230348,267691,305332,343275,381878,421503,462521,505325,550336,598015,648875,703490,762516,826704,896919,974171,1059638,1154707,1261014,1380500],
+    rev_amazon:    [0,0,0,7680,11117,14581,18072,21592,25914,30115,34350,38618,42961,47419,52034,56849,61913,67277,72998,79143,85783,93004,100903,109594,119209,129905,141864,155306],
+    rev_affiliates:[0,433,1633,7680,11117,14581,18072,21592,25914,30115,34350,38618,42961,47419,52034,56849,61913,67277,72998,79143,85783,93004,100903,109594,119209,129905,141864,155306],
+    rev_partners:  [0,39,145,43707,56299,68993,81788,94685,114095,128771,144289,159931,175834,192139,208987,226530,244930,264364,285029,307147,330968,356778,384908,415744,449732,487398,529362,576357],
+    rev_subs:      [0,0,0,574,1247,1963,2703,6462,15510,26562,38201,55646,70323,80069,87850,95694,103797,112207,120979,130172,139853,150095,160982,172609,185085,198535,213101,228948],
+    rev_ads:       [0,0,0,506,732,960,1189,1415,1684,1939,2196,2436,2680,2955,3236,3525,3823,4133,4456,4795,5152,5529,5930,6358,6818,7313,7850,8434],
 
-        const labels = Array.from({length: 24}, (_, i) => `M${i + 1}`);
+    // Gross profit per channel
+    gp_donations:  [330,622,1139,2048,2964,3888,4819,5758,6910,8031,9160,10298,11456,12645,13876,15160,16510,17940,19466,21105,22875,24801,26908,29225,31789,34641,37830,41415],
+    gp_amazon:     [0,0,0,154,222,292,361,432,518,602,687,772,859,948,1041,1137,1238,1346,1460,1583,1716,1860,2018,2192,2384,2598,2837,3106],
+    gp_affiliates: [0,15,57,269,389,510,633,756,907,1054,1202,1352,1504,1660,1821,1990,2167,2355,2555,2770,3002,3255,3532,3836,4172,4547,4965,5436],
+    gp_partners:   [0,5,17,5157,6643,8141,9651,11173,13463,15195,17026,18872,20748,22672,24660,26731,28902,31195,33633,36243,39054,42100,45419,49058,53068,57513,62465,68010],
+    gp_subs:       [0,0,0,488,1060,1668,2298,5493,13184,22577,32471,47299,59774,68058,74673,81340,88227,95376,102832,110647,118875,127580,136835,146718,157323,168755,181135,194606],
+    gp_ads:        [0,0,0,491,710,931,1153,1372,1634,1881,2130,2363,2600,2866,3139,3419,3709,4009,4323,4651,4997,5363,5752,6168,6613,7094,7614,8181],
 
-        // ───── Reactive Sliders ─────
-        const multiplier_donations = ref(1.0);
-        const multiplier_partners = ref(1.0);
-        const multiplier_subs = ref(1.0);
-        const retention_factor = ref(1.0);
-        const viral_factor = ref(1.0);
+    // Costs
+    costs_fixed: Array(28).fill(70000),
+    costs_acq:   Array(28).fill(25000),
+    costs_bizdev:[0,4,15,1085,1406,1730,2057,2386,2874,3250,3646,4045,4450,4866,5296,5744,6214,6710,7238,7803,8411,9071,9790,10579,11448,12412,13486,14689],
+    costs_taxes: [0,0,0,0,0,0,0,0,0,0,0,0,0,9797,10729,11680,12668,13700,14784,15930,17147,18446,19842,21348,22981,24763,26716,28868],
 
-        // ───── Computed Simulated Arrays ─────
-        const simDonations = computed(() => baseData.revenue_donations.map(v => Math.round(v * multiplier_donations.value)));
-        const simAmazon = computed(() => [...baseData.revenue_amazon]);
-        const simAffiliates = computed(() => [...baseData.revenue_affiliates]);
-        const simPartners = computed(() => baseData.revenue_partners.map(v => Math.round(v * multiplier_partners.value)));
-        const simSubs = computed(() => baseData.revenue_subs.map(v => Math.round(v * multiplier_subs.value)));
+    // Users
+    users_total:   [2200,4147,7593,13654,19763,25921,32129,38386,46070,53538,61066,68655,76342,84168,92173,100403,108904,117729,126932,136578,146735,157480,168903,181103,194193,208304,223587,240214],
+    users_organic:  [2000,3700,6590,10931,14838,18354,21519,24367,26930,29237,31313,33182,34873,36412,37820,39116,40314,41428,42470,43450,44376,45255,46095,46901,47679,48433,49169,49890],
+    users_viral:    [200,447,1003,2723,4925,7567,10610,14019,19139,24301,29753,35473,41502,47888,54684,61949,69753,78175,87304,97248,108128,120086,133289,147933,164249,182508,203034,226210],
+    users_new_organic:[2000,3000,4000,5000,5000,5000,5000,5000,5000,5000,5000,5000,5000,5000,5000,5000,5000,5000,5000,5000,5000,5000,5000,5000,5000,5000,5000,5000],
 
-        const simUsers = computed(() => {
-            const factor = retention_factor.value * viral_factor.value;
-            return baseData.users_base.map(v => Math.round(v * factor));
-        });
+    net_profit: [-94670,-94362,-93802,-87478,-84417,-81300,-78142,-72402,-61258,-48909,-35969,-18089,-2509,-813,8185,17352,26871,36811,47248,58266,69962,82442,95831,110270,125920,142972,161645,182196]
+};
 
-        const simRevenueTotal = computed(() =>
-            labels.map((_, i) => simDonations.value[i] + simAmazon.value[i] + simAffiliates.value[i] + simPartners.value[i] + simSubs.value[i])
-        );
+const N = 28;
+const labels = Array.from({length:N},(_,i)=>`M${i+1}`);
 
-        const simCosts = computed(() =>
-            labels.map((_, i) => baseData.costs_fixed[i] + simUsers.value[i] * baseData.costs_acq_per_user)
-        );
+// Channel metadata
+const channels = [
+    { key:'donations',  label:'Donations',     color:'#635bff' },
+    { key:'partners',   label:'Partners',      color:'#8b5cf6' },
+    { key:'subs',       label:'Subscriptions',  color:'#00d4aa' },
+    { key:'amazon',     label:'Amazon Certs',   color:'#f59e0b' },
+    { key:'affiliates', label:'Affiliates',     color:'#64748b' },
+    { key:'ads',        label:'Banner Ads',     color:'#ec4899' }
+];
 
-        const simProfit = computed(() =>
-            labels.map((_, i) => simRevenueTotal.value[i] - simCosts.value[i])
-        );
+// ═══════════════════════════════
+//  SLIDERS
+// ═══════════════════════════════
+const retention_m1 = ref(35);
+const retention_m2 = ref(85);
+const invite_conv = ref(20);
+const invites_per_user = ref(0.8);
+const convMultipliers = reactive({
+    donations: 1.0, partners: 1.0, subs: 1.0,
+    amazon: 1.0, affiliates: 1.0, ads: 1.0
+});
 
-        // ───── KPI Metrics ─────
-        const totalRevenue = computed(() => simRevenueTotal.value.reduce((a, b) => a + b, 0));
-        const totalProfit = computed(() => simProfit.value.reduce((a, b) => a + b, 0));
+// ═══════════════════════════════
+//  COHORT MODEL
+// ═══════════════════════════════
+function runCohort(R1, R2, K) {
+    const surv = a => a === 0 ? 1.0 : R1 * Math.pow(R2, a - 1);
+    const vNew = new Array(N).fill(0);
+    const tot = new Array(N).fill(0);
+    const org = new Array(N).fill(0);
+    const vir = new Array(N).fill(0);
 
-        const breakevenMonth = computed(() => {
-            const idx = simProfit.value.findIndex(v => v > 0);
-            return idx >= 0 ? idx + 1 : null;
-        });
-
-        // Base-case totals for delta calculation (precomputed once)
-        const baseTotalRevenue = baseData.revenue_donations.map((v, i) =>
-            v + baseData.revenue_amazon[i] + baseData.revenue_affiliates[i] + baseData.revenue_partners[i] + baseData.revenue_subs[i]
-        ).reduce((a, b) => a + b, 0);
-
-        const baseTotalProfit = baseData.revenue_donations.map((v, i) => {
-            const rev = v + baseData.revenue_amazon[i] + baseData.revenue_affiliates[i] + baseData.revenue_partners[i] + baseData.revenue_subs[i];
-            const cost = baseData.costs_fixed[i] + baseData.users_base[i] * baseData.costs_acq_per_user;
-            return rev - cost;
-        }).reduce((a, b) => a + b, 0);
-
-        const baseTotalUsers = baseData.users_base[23];
-
-        const revenueDelta = computed(() => ((totalRevenue.value - baseTotalRevenue) / baseTotalRevenue) * 100);
-        const profitDelta = computed(() => {
-            if (baseTotalProfit === 0) return totalProfit.value > 0 ? 100 : -100;
-            return ((totalProfit.value - baseTotalProfit) / Math.abs(baseTotalProfit)) * 100;
-        });
-        const usersDelta = computed(() => ((simUsers.value[23] - baseTotalUsers) / baseTotalUsers) * 100);
-
-        // ───── Formatting Helpers ─────
-        const formatMoney = (v) => {
-            const abs = Math.abs(v);
-            const sign = v < 0 ? '-' : '';
-            if (abs >= 1e6) return sign + '$' + (abs / 1e6).toFixed(2) + 'M';
-            if (abs >= 1e3) return sign + '$' + (abs / 1e3).toFixed(0) + 'K';
-            return sign + '$' + abs.toFixed(0);
-        };
-
-        const formatNum = (v) => {
-            if (v >= 1e6) return (v / 1e6).toFixed(1) + 'M';
-            if (v >= 1e3) return (v / 1e3).toFixed(1) + 'K';
-            return String(v);
-        };
-
-        // ───── Actions ─────
-        const resetAll = () => {
-            multiplier_donations.value = 1.0;
-            multiplier_partners.value = 1.0;
-            multiplier_subs.value = 1.0;
-            retention_factor.value = 1.0;
-            viral_factor.value = 1.0;
-        };
-
-        const applyScenario = (name) => {
-            const scenarios = {
-                pessimistic: { d: 0.7, p: 0.6, s: 0.6, r: 0.75, v: 0.8 },
-                base:        { d: 1.0, p: 1.0, s: 1.0, r: 1.0, v: 1.0 },
-                optimistic:  { d: 1.3, p: 1.4, s: 1.5, r: 1.2, v: 1.15 },
-                viral:       { d: 1.1, p: 1.1, s: 1.2, r: 1.3, v: 1.8 }
-            };
-            const s = scenarios[name];
-            if (!s) return;
-            multiplier_donations.value = s.d;
-            multiplier_partners.value = s.p;
-            multiplier_subs.value = s.s;
-            retention_factor.value = s.r;
-            viral_factor.value = s.v;
-        };
-
-        // ───── Charts ─────
-        let revenueChart = null;
-        let profitChart = null;
-        let usersChart = null;
-
-        const chartFont = { family: "'Inter', system-ui, sans-serif" };
-        const tooltipStyle = {
-            backgroundColor: '#0a2540',
-            titleColor: '#fff',
-            bodyColor: '#e2e8f0',
-            padding: 12,
-            cornerRadius: 8,
-            titleFont: { ...chartFont, size: 12, weight: '600' },
-            bodyFont: { ...chartFont, size: 12 },
-            displayColors: true,
-            boxPadding: 4
-        };
-
-        const initCharts = () => {
-            Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
-            Chart.defaults.color = '#94a3b8';
-
-            // Revenue Stacked Bar
-            const rCtx = document.getElementById('revenueChart').getContext('2d');
-            revenueChart = new Chart(rCtx, {
-                type: 'bar',
-                data: {
-                    labels,
-                    datasets: [
-                        { label: 'Donations', data: simDonations.value, backgroundColor: '#635bff', borderRadius: 2 },
-                        { label: 'Partners', data: simPartners.value, backgroundColor: '#8b5cf6', borderRadius: 2 },
-                        { label: 'Subscriptions', data: simSubs.value, backgroundColor: '#00d4aa', borderRadius: 2 },
-                        { label: 'Amazon', data: simAmazon.value, backgroundColor: '#f59e0b', borderRadius: 2 },
-                        { label: 'Affiliates', data: simAffiliates.value, backgroundColor: '#94a3b8', borderRadius: 2 }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: { intersect: false, mode: 'index' },
-                    plugins: {
-                        legend: { display: true, position: 'bottom', labels: { usePointStyle: true, pointStyle: 'rectRounded', padding: 14, font: { size: 11 } } },
-                        tooltip: { ...tooltipStyle, callbacks: { label: ctx => ` ${ctx.dataset.label}: $${ctx.parsed.y.toLocaleString()}` } }
-                    },
-                    scales: {
-                        x: { stacked: true, grid: { display: false }, ticks: { font: { size: 10 }, maxTicksLimit: 12 } },
-                        y: { stacked: true, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 10 }, callback: v => v >= 1e6 ? (v/1e6).toFixed(1)+'M' : v >= 1e3 ? (v/1e3).toFixed(0)+'K' : v } }
-                    },
-                    animation: { duration: 600, easing: 'easeOutQuart' }
-                }
-            });
-
-            // Profit Line
-            const pCtx = document.getElementById('profitChart').getContext('2d');
-            const profitGradientGreen = pCtx.createLinearGradient(0, 0, 0, 300);
-            profitGradientGreen.addColorStop(0, 'rgba(0, 212, 170, 0.35)');
-            profitGradientGreen.addColorStop(1, 'rgba(0, 212, 170, 0.02)');
-
-            profitChart = new Chart(pCtx, {
-                type: 'line',
-                data: {
-                    labels,
-                    datasets: [{
-                        label: 'Net Profit',
-                        data: simProfit.value,
-                        borderWidth: 2.5,
-                        tension: 0.35,
-                        pointRadius: 0,
-                        pointHoverRadius: 5,
-                        pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderWidth: 2.5,
-                        fill: true,
-                        segment: {
-                            borderColor: ctx => ctx.p0.parsed.y < 0 && ctx.p1.parsed.y < 0 ? '#ff5c5c' : ctx.p0.parsed.y >= 0 && ctx.p1.parsed.y >= 0 ? '#00d4aa' : '#f59e0b',
-                            backgroundColor: ctx => ctx.p0.parsed.y < 0 ? 'rgba(255, 92, 92, 0.12)' : 'rgba(0, 212, 170, 0.18)'
-                        }
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: { intersect: false, mode: 'index' },
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            ...tooltipStyle,
-                            displayColors: false,
-                            callbacks: {
-                                label: ctx => {
-                                    const v = ctx.parsed.y;
-                                    const prefix = v >= 0 ? '+' : '';
-                                    return `Net Profit: ${prefix}$${v.toLocaleString()}`;
-                                },
-                                labelColor: ctx => ({
-                                    borderColor: ctx.parsed.y >= 0 ? '#00d4aa' : '#ff5c5c',
-                                    backgroundColor: ctx.parsed.y >= 0 ? '#00d4aa' : '#ff5c5c'
-                                })
-                            }
-                        },
-                        annotation: {
-                            annotations: {
-                                zeroLine: {
-                                    type: 'line',
-                                    yMin: 0, yMax: 0,
-                                    borderColor: '#cbd5e1',
-                                    borderWidth: 1,
-                                    borderDash: [4, 3]
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: { grid: { display: false }, ticks: { font: { size: 10 }, maxTicksLimit: 12 } },
-                        y: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 10 }, callback: v => { const a = Math.abs(v); const s = v < 0 ? '-' : ''; return a >= 1e6 ? s+(a/1e6).toFixed(1)+'M' : a >= 1e3 ? s+(a/1e3).toFixed(0)+'K' : s+a; } } }
-                    },
-                    animation: { duration: 600, easing: 'easeOutQuart' }
-                }
-            });
-
-            // Users Area
-            const uCtx = document.getElementById('usersChart').getContext('2d');
-            const usersGradient = uCtx.createLinearGradient(0, 0, 0, 280);
-            usersGradient.addColorStop(0, 'rgba(99, 91, 255, 0.35)');
-            usersGradient.addColorStop(1, 'rgba(99, 91, 255, 0.02)');
-
-            usersChart = new Chart(uCtx, {
-                type: 'line',
-                data: {
-                    labels,
-                    datasets: [{
-                        label: 'Active Users',
-                        data: simUsers.value,
-                        borderColor: '#635bff',
-                        backgroundColor: usersGradient,
-                        borderWidth: 2.5,
-                        fill: true,
-                        tension: 0.4,
-                        pointRadius: 0,
-                        pointHoverRadius: 5,
-                        pointHoverBackgroundColor: '#635bff',
-                        pointHoverBorderColor: '#fff',
-                        pointHoverBorderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: { intersect: false, mode: 'index' },
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: { ...tooltipStyle, displayColors: false, callbacks: { label: ctx => `Users: ${ctx.parsed.y.toLocaleString()}` } }
-                    },
-                    scales: {
-                        x: { grid: { display: false }, ticks: { font: { size: 10 }, maxTicksLimit: 12 } },
-                        y: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 10 }, callback: v => v >= 1e6 ? (v/1e6).toFixed(1)+'M' : v >= 1e3 ? (v/1e3).toFixed(0)+'K' : v } }
-                    },
-                    animation: { duration: 600, easing: 'easeOutQuart' }
-                }
-            });
-        };
-
-        // Update charts reactively
-        const updateCharts = () => {
-            if (!revenueChart) return;
-
-            // Revenue chart
-            revenueChart.data.datasets[0].data = simDonations.value;
-            revenueChart.data.datasets[1].data = simPartners.value;
-            revenueChart.data.datasets[2].data = simSubs.value;
-            revenueChart.data.datasets[3].data = simAmazon.value;
-            revenueChart.data.datasets[4].data = simAffiliates.value;
-            revenueChart.update('active');
-
-            // Profit chart
-            profitChart.data.datasets[0].data = simProfit.value;
-            // Update breakeven annotation
-            const beMonth = breakevenMonth.value;
-            if (beMonth) {
-                profitChart.options.plugins.annotation.annotations.breakeven = {
-                    type: 'line',
-                    xMin: beMonth - 1,
-                    xMax: beMonth - 1,
-                    borderColor: '#00d4aa',
-                    borderWidth: 2,
-                    borderDash: [5, 3],
-                    label: {
-                        display: true,
-                        content: `BE: M${beMonth}`,
-                        position: 'start',
-                        backgroundColor: '#00d4aa',
-                        color: '#fff',
-                        font: { size: 10, weight: '600', family: "'Inter'" },
-                        padding: { x: 6, y: 3 },
-                        borderRadius: 4
-                    }
-                };
-            } else {
-                delete profitChart.options.plugins.annotation.annotations.breakeven;
-            }
-            profitChart.update('active');
-
-            // Users chart
-            usersChart.data.datasets[0].data = simUsers.value;
-            usersChart.update('active');
-        };
-
-        // Watch all sliders
-        watch([multiplier_donations, multiplier_partners, multiplier_subs, retention_factor, viral_factor], updateCharts);
-
-        onMounted(() => {
-            nextTick(() => initCharts());
-        });
-
-        return {
-            multiplier_donations, multiplier_partners, multiplier_subs,
-            retention_factor, viral_factor,
-            simUsers, simProfit, simRevenueTotal,
-            totalRevenue, totalProfit, breakevenMonth,
-            revenueDelta, profitDelta, usersDelta,
-            formatMoney, formatNum,
-            resetAll, applyScenario
-        };
+    for (let m = 0; m < N; m++) {
+        vNew[m] = m === 0
+            ? Math.round(B.users_new_organic[0] * K)
+            : Math.round(tot[m-1] * K);
+        let oA = 0;
+        for (let i = 0; i <= m; i++) oA += B.users_new_organic[i] * surv(m - i);
+        org[m] = Math.round(oA);
+        let vA = 0;
+        for (let i = 0; i <= m; i++) vA += vNew[i] * surv(m - i);
+        vir[m] = Math.round(vA);
+        tot[m] = org[m] + vir[m];
     }
+    return { tot, org, vir, vNew };
+}
+
+// Base cohort (constant reference for ratio)
+const BASE_K = 0.8 * 0.20;
+const cohortBase = runCohort(0.35, 0.85, BASE_K);
+
+// ═══════════════════════════════
+//  SIMULATION (all computed)
+// ═══════════════════════════════
+const cohortSim = computed(() => {
+    const R1 = retention_m1.value / 100;
+    const R2 = retention_m2.value / 100;
+    const K = invites_per_user.value * (invite_conv.value / 100);
+    return runCohort(R1, R2, K);
+});
+
+const userRatio = computed(() =>
+    cohortSim.value.tot.map((v, i) => cohortBase.tot[i] > 0 ? v / cohortBase.tot[i] : 1)
+);
+
+const simUsers = computed(() => B.users_total.map((v, i) => Math.round(v * userRatio.value[i])));
+const simOrganic = computed(() => B.users_organic.map((v, i) =>
+    Math.round(v * (cohortBase.org[i] > 0 ? cohortSim.value.org[i] / cohortBase.org[i] : 1))
+));
+const simViral = computed(() => simUsers.value.map((v, i) => Math.max(0, v - simOrganic.value[i])));
+
+// Revenue per channel
+const sr = (base, key) => computed(() => base.map((v, i) => Math.round(v * userRatio.value[i] * convMultipliers[key])));
+const simRevDon = sr(B.rev_donations, 'donations');
+const simRevPar = sr(B.rev_partners, 'partners');
+const simRevSub = sr(B.rev_subs, 'subs');
+const simRevAmz = sr(B.rev_amazon, 'amazon');
+const simRevAff = sr(B.rev_affiliates, 'affiliates');
+const simRevAds = sr(B.rev_ads, 'ads');
+
+// GP per channel
+const sg = (base, key) => computed(() => base.map((v, i) => Math.round(v * userRatio.value[i] * convMultipliers[key])));
+const simGPDon = sg(B.gp_donations, 'donations');
+const simGPPar = sg(B.gp_partners, 'partners');
+const simGPSub = sg(B.gp_subs, 'subs');
+const simGPAmz = sg(B.gp_amazon, 'amazon');
+const simGPAff = sg(B.gp_affiliates, 'affiliates');
+const simGPAds = sg(B.gp_ads, 'ads');
+
+// Totals
+const simTotalRev = computed(() => labels.map((_, i) =>
+    simRevDon.value[i]+simRevAmz.value[i]+simRevAff.value[i]+simRevPar.value[i]+simRevSub.value[i]+simRevAds.value[i]
+));
+const simTotalGP = computed(() => labels.map((_, i) =>
+    simGPDon.value[i]+simGPAmz.value[i]+simGPAff.value[i]+simGPPar.value[i]+simGPSub.value[i]+simGPAds.value[i]
+));
+
+// Costs
+const simBizdev = computed(() => simGPPar.value.map((v, i) => Math.round((v + simGPAff.value[i]) * 0.20)));
+const simTaxes = computed(() => simTotalGP.value.map((gp, i) => i >= 13 ? Math.round(gp * 0.09) : 0));
+const simTotalCosts = computed(() => labels.map((_, i) =>
+    B.costs_fixed[i] + B.costs_acq[i] + simBizdev.value[i] + simTaxes.value[i]
+));
+
+// Net profit
+const simNetProfit = computed(() => labels.map((_, i) => simTotalGP.value[i] - simTotalCosts.value[i]));
+
+// ═══════════════════════════════
+//  KPIs
+// ═══════════════════════════════
+const totalRevenue = computed(() => simTotalRev.value.reduce((a, b) => a + b, 0));
+const totalProfit = computed(() => simNetProfit.value.reduce((a, b) => a + b, 0));
+const breakevenMonth = computed(() => { const i = simNetProfit.value.findIndex(v => v > 0); return i >= 0 ? i + 1 : null; });
+const peakUsers = computed(() => simUsers.value[N - 1]);
+const viralPct = computed(() => { const t = simUsers.value[N-1]; return t > 0 ? Math.round(simViral.value[N-1] / t * 100) : 0; });
+const payingUsersPct = computed(() => {
+    const rates = [0.05*convMultipliers.donations, 0.035*convMultipliers.partners, 0.015*convMultipliers.subs, 0.015*convMultipliers.amazon, 0.015*convMultipliers.affiliates];
+    return Math.round((1 - rates.reduce((p, r) => p * (1 - Math.min(r, 1)), 1)) * 100);
+});
+const simMonthlyUAC = computed(() => Array.from({length:N}, (_, i) => {
+    const totalNew = B.users_new_organic[i] + cohortSim.value.vNew[i];
+    return totalNew > 0 ? +(B.costs_acq[i] / totalNew).toFixed(2) : 0;
+}));
+const avgUAC = computed(() => {
+    const totalNew = cohortSim.value.vNew.reduce((a,b)=>a+b,0) + B.users_new_organic.reduce((a,b)=>a+b,0);
+    const totalAcq = B.costs_acq.reduce((a,b)=>a+b,0);
+    return totalNew > 0 ? totalAcq / totalNew : 0;
+});
+const ltvUac = computed(() => {
+    const totalAcquired = cohortSim.value.vNew.reduce((a,b)=>a+b,0) + B.users_new_organic.reduce((a,b)=>a+b,0);
+    const totalGP = simTotalGP.value.reduce((a,b)=>a+b,0);
+    const ltv = totalAcquired > 0 ? totalGP / totalAcquired : 0;
+    return avgUAC.value > 0 ? (ltv / avgUAC.value).toFixed(1) : '∞';
+});
+
+// Deltas
+const baseTotRev = B.rev_donations.reduce((a,v,i)=>a+v+B.rev_amazon[i]+B.rev_affiliates[i]+B.rev_partners[i]+B.rev_subs[i]+B.rev_ads[i],0);
+const baseTotProf = B.net_profit.reduce((a,b)=>a+b,0);
+const revDelta = computed(() => ((totalRevenue.value - baseTotRev) / baseTotRev) * 100);
+const profDelta = computed(() => baseTotProf === 0 ? (totalProfit.value>0?100:-100) : ((totalProfit.value - baseTotProf) / Math.abs(baseTotProf)) * 100);
+const userDelta = computed(() => ((peakUsers.value - B.users_total[N-1]) / B.users_total[N-1]) * 100);
+
+// ═══════════════════════════════
+//  FORMATTING
+// ═══════════════════════════════
+const fmtMoney = v => { const a=Math.abs(v),s=v<0?'-':''; return a>=1e6?s+'$'+(a/1e6).toFixed(2)+'M':a>=1e3?s+'$'+(a/1e3).toFixed(0)+'K':s+'$'+a.toFixed(0); };
+const fmtNum = v => v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?(v/1e3).toFixed(1)+'K':String(v);
+
+// ═══════════════════════════════
+//  ACTIONS
+// ═══════════════════════════════
+const resetAll = () => {
+    retention_m1.value=35; retention_m2.value=85;
+    invite_conv.value=20; invites_per_user.value=0.8;
+    Object.keys(convMultipliers).forEach(k=>convMultipliers[k]=1.0);
+};
+
+const applyScenario = name => {
+    const S = {
+        pessimistic: {r1:20,r2:70,ic:10,ip:0.3,m:0.7},
+        base:        {r1:35,r2:85,ic:20,ip:0.8,m:1.0},
+        optimistic:  {r1:45,r2:90,ic:25,ip:1.0,m:1.3},
+        viral:       {r1:40,r2:88,ic:35,ip:2.5,m:1.1}
+    }[name];
+    if(!S) return;
+    retention_m1.value=S.r1; retention_m2.value=S.r2;
+    invite_conv.value=S.ic; invites_per_user.value=S.ip;
+    Object.keys(convMultipliers).forEach(k=>convMultipliers[k]=S.m);
+};
+
+// ═══════════════════════════════
+//  CHARTS
+// ═══════════════════════════════
+const C = {}; // chart instances
+const TT = {backgroundColor:'#0a2540',titleColor:'#fff',bodyColor:'#e2e8f0',padding:12,cornerRadius:8,displayColors:true,boxPadding:3,
+    titleFont:{size:11,weight:'600',family:"'Inter'"},bodyFont:{size:11,family:"'Inter'"}};
+const fmtTick = v=>{const a=Math.abs(v),s=v<0?'-':'';return a>=1e6?s+(a/1e6).toFixed(1)+'M':a>=1e3?s+(a/1e3).toFixed(0)+'K':s+a;};
+
+function initCharts() {
+    Chart.defaults.font.family="'Inter',system-ui,sans-serif";
+    Chart.defaults.color='#94a3b8';
+
+    // 1. Revenue by Channel (stacked bar)
+    C.rev = new Chart(document.getElementById('chRevenue'),{
+        type:'bar',
+        data:{labels, datasets:[
+            {label:'Donations',data:simRevDon.value,backgroundColor:'#635bff',borderRadius:1},
+            {label:'Partners',data:simRevPar.value,backgroundColor:'#8b5cf6',borderRadius:1},
+            {label:'Subs',data:simRevSub.value,backgroundColor:'#00d4aa',borderRadius:1},
+            {label:'Amazon',data:simRevAmz.value,backgroundColor:'#f59e0b',borderRadius:1},
+            {label:'Affiliates',data:simRevAff.value,backgroundColor:'#64748b',borderRadius:1},
+            {label:'Ads',data:simRevAds.value,backgroundColor:'#ec4899',borderRadius:1}
+        ]},
+        options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},
+            plugins:{legend:{display:true,position:'bottom',labels:{usePointStyle:true,pointStyle:'rectRounded',padding:10,font:{size:10}}},
+                tooltip:{...TT,callbacks:{label:c=>` ${c.dataset.label}: $${c.parsed.y.toLocaleString()}`}}},
+            scales:{x:{stacked:true,grid:{display:false},ticks:{font:{size:9},maxTicksLimit:14}},
+                y:{stacked:true,grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{size:9},callback:fmtTick}}},
+            animation:{duration:500,easing:'easeOutQuart'}}
+    });
+
+    // 2. GP by Channel (stacked bar)
+    C.gp = new Chart(document.getElementById('chGP'),{
+        type:'bar',
+        data:{labels, datasets:[
+            {label:'Donations',data:simGPDon.value,backgroundColor:'#635bff',borderRadius:1},
+            {label:'Partners',data:simGPPar.value,backgroundColor:'#8b5cf6',borderRadius:1},
+            {label:'Subs',data:simGPSub.value,backgroundColor:'#00d4aa',borderRadius:1},
+            {label:'Amazon',data:simGPAmz.value,backgroundColor:'#f59e0b',borderRadius:1},
+            {label:'Affiliates',data:simGPAff.value,backgroundColor:'#64748b',borderRadius:1},
+            {label:'Ads',data:simGPAds.value,backgroundColor:'#ec4899',borderRadius:1}
+        ]},
+        options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},
+            plugins:{legend:{display:true,position:'bottom',labels:{usePointStyle:true,pointStyle:'rectRounded',padding:10,font:{size:10}}},
+                tooltip:{...TT,callbacks:{label:c=>` ${c.dataset.label}: $${c.parsed.y.toLocaleString()}`}}},
+            scales:{x:{stacked:true,grid:{display:false},ticks:{font:{size:9},maxTicksLimit:14}},
+                y:{stacked:true,grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{size:9},callback:fmtTick}}},
+            animation:{duration:500,easing:'easeOutQuart'}}
+    });
+
+    // 3. Net Profit (line with segment colors)
+    C.profit = new Chart(document.getElementById('chProfit'),{
+        type:'line',
+        data:{labels,datasets:[{label:'Net Profit',data:simNetProfit.value,borderWidth:2.5,tension:.35,pointRadius:0,pointHoverRadius:5,fill:true,
+            segment:{
+                borderColor:ctx=>ctx.p0.parsed.y<0&&ctx.p1.parsed.y<0?'#ff5c5c':ctx.p0.parsed.y>=0&&ctx.p1.parsed.y>=0?'#00d4aa':'#f59e0b',
+                backgroundColor:ctx=>ctx.p0.parsed.y<0?'rgba(255,92,92,.1)':'rgba(0,212,170,.15)'
+            }}]},
+        options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},
+            plugins:{legend:{display:false},
+                tooltip:{...TT,displayColors:false,callbacks:{label:ctx=>{const v=ctx.parsed.y;return`Net: ${v>=0?'+':''}$${v.toLocaleString()}`}}},
+                annotation:{annotations:{zero:{type:'line',yMin:0,yMax:0,borderColor:'#cbd5e1',borderWidth:1,borderDash:[4,3]}}}},
+            scales:{x:{grid:{display:false},ticks:{font:{size:9},maxTicksLimit:14}},
+                y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{size:9},callback:fmtTick}}},
+            animation:{duration:500,easing:'easeOutQuart'}}
+    });
+
+    // 4. Expenses (stacked bar)
+    C.exp = new Chart(document.getElementById('chExpenses'),{
+        type:'bar',
+        data:{labels,datasets:[
+            {label:'Fixed',data:[...B.costs_fixed],backgroundColor:'#94a3b8',borderRadius:1},
+            {label:'Acquisition',data:[...B.costs_acq],backgroundColor:'#f59e0b',borderRadius:1},
+            {label:'Bizdev',data:simBizdev.value,backgroundColor:'#8b5cf6',borderRadius:1},
+            {label:'Taxes',data:simTaxes.value,backgroundColor:'#ef4444',borderRadius:1}
+        ]},
+        options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},
+            plugins:{legend:{display:true,position:'bottom',labels:{usePointStyle:true,pointStyle:'rectRounded',padding:10,font:{size:10}}},
+                tooltip:{...TT,callbacks:{label:c=>` ${c.dataset.label}: $${c.parsed.y.toLocaleString()}`}}},
+            scales:{x:{stacked:true,grid:{display:false},ticks:{font:{size:9},maxTicksLimit:14}},
+                y:{stacked:true,grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{size:9},callback:fmtTick}}},
+            animation:{duration:500,easing:'easeOutQuart'}}
+    });
+
+    // 5. Users (multi-line area)
+    const uCtx = document.getElementById('chUsers').getContext('2d');
+    const gTotal = uCtx.createLinearGradient(0,0,0,280);
+    gTotal.addColorStop(0,'rgba(99,91,255,.3)');gTotal.addColorStop(1,'rgba(99,91,255,.02)');
+    const gViral = uCtx.createLinearGradient(0,0,0,280);
+    gViral.addColorStop(0,'rgba(139,92,246,.25)');gViral.addColorStop(1,'rgba(139,92,246,.02)');
+
+    C.users = new Chart(uCtx,{
+        type:'line',
+        data:{labels,datasets:[
+            {label:'Total Users',data:simUsers.value,borderColor:'#635bff',backgroundColor:gTotal,borderWidth:2.5,fill:true,tension:.4,pointRadius:0,pointHoverRadius:5},
+            {label:'Organic',data:simOrganic.value,borderColor:'#94a3b8',borderWidth:1.5,borderDash:[5,3],fill:false,tension:.4,pointRadius:0,pointHoverRadius:4},
+            {label:'Viral',data:simViral.value,borderColor:'#8b5cf6',backgroundColor:gViral,borderWidth:2,fill:true,tension:.4,pointRadius:0,pointHoverRadius:4}
+        ]},
+        options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},
+            plugins:{legend:{display:true,position:'bottom',labels:{usePointStyle:true,pointStyle:'circle',padding:14,font:{size:10}}},
+                tooltip:{...TT,callbacks:{label:c=>`${c.dataset.label}: ${c.parsed.y.toLocaleString()}`}}},
+            scales:{x:{grid:{display:false},ticks:{font:{size:9},maxTicksLimit:14}},
+                y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{size:9},callback:fmtTick}}},
+            animation:{duration:500,easing:'easeOutQuart'}}
+    });
+
+    // 6. UAC Trend (line)
+    C.uac = new Chart(document.getElementById('chUAC'),{
+        type:'line',
+        data:{labels,datasets:[{label:'Effective UAC',data:simMonthlyUAC.value,borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,.1)',borderWidth:2.5,fill:true,tension:.4,pointRadius:0,pointHoverRadius:5}]},
+        options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},
+            plugins:{legend:{display:false},tooltip:{...TT,displayColors:false,callbacks:{label:ctx=>`UAC: $${ctx.parsed.y.toFixed(2)}`}}},
+            scales:{x:{grid:{display:false},ticks:{font:{size:9},maxTicksLimit:14}},
+                y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{size:9},callback:v=>'$'+v.toFixed(1)}}},
+            animation:{duration:500,easing:'easeOutQuart'}}
+    });
+
+    // Set initial breakeven annotation
+    updateCharts();
+}
+
+// ═══════════════════════════════
+//  CHART UPDATES
+// ═══════════════════════════════
+function updateCharts() {
+    if(!C.rev) return;
+
+    // Revenue
+    C.rev.data.datasets[0].data = simRevDon.value;
+    C.rev.data.datasets[1].data = simRevPar.value;
+    C.rev.data.datasets[2].data = simRevSub.value;
+    C.rev.data.datasets[3].data = simRevAmz.value;
+    C.rev.data.datasets[4].data = simRevAff.value;
+    C.rev.data.datasets[5].data = simRevAds.value;
+    C.rev.update('active');
+
+    // GP
+    C.gp.data.datasets[0].data = simGPDon.value;
+    C.gp.data.datasets[1].data = simGPPar.value;
+    C.gp.data.datasets[2].data = simGPSub.value;
+    C.gp.data.datasets[3].data = simGPAmz.value;
+    C.gp.data.datasets[4].data = simGPAff.value;
+    C.gp.data.datasets[5].data = simGPAds.value;
+    C.gp.update('active');
+
+    // Profit
+    C.profit.data.datasets[0].data = simNetProfit.value;
+    const bm = breakevenMonth.value;
+    if(bm) {
+        C.profit.options.plugins.annotation.annotations.be = {
+            type:'line',xMin:bm-1,xMax:bm-1,borderColor:'#00d4aa',borderWidth:2,borderDash:[5,3],
+            label:{display:true,content:`BE: M${bm}`,position:'start',backgroundColor:'#00d4aa',color:'#fff',
+                font:{size:10,weight:'600',family:"'Inter'"},padding:{x:6,y:3},borderRadius:4}
+        };
+    } else {
+        delete C.profit.options.plugins.annotation.annotations.be;
+    }
+    C.profit.update('active');
+
+    // Expenses
+    C.exp.data.datasets[2].data = simBizdev.value;
+    C.exp.data.datasets[3].data = simTaxes.value;
+    C.exp.update('active');
+
+    // Users
+    C.users.data.datasets[0].data = simUsers.value;
+    C.users.data.datasets[1].data = simOrganic.value;
+    C.users.data.datasets[2].data = simViral.value;
+    C.users.update('active');
+
+    // UAC
+    C.uac.data.datasets[0].data = simMonthlyUAC.value;
+    C.uac.update('active');
+}
+
+// Watch all sliders
+watch([retention_m1, retention_m2, invite_conv, invites_per_user,
+    ()=>convMultipliers.donations,()=>convMultipliers.partners,()=>convMultipliers.subs,
+    ()=>convMultipliers.amazon,()=>convMultipliers.affiliates,()=>convMultipliers.ads],
+    updateCharts
+);
+
+onMounted(() => nextTick(initCharts));
+
+return {
+    retention_m1, retention_m2, invite_conv, invites_per_user, convMultipliers,
+    channels, simUsers, simOrganic, simViral, simNetProfit,
+    totalRevenue, totalProfit, breakevenMonth, peakUsers, viralPct,
+    payingUsersPct, avgUAC, ltvUac, simMonthlyUAC,
+    revDelta, profDelta, userDelta,
+    fmtMoney, fmtNum, resetAll, applyScenario
+};
+}
 }).mount('#app');
 </script>
 </body>

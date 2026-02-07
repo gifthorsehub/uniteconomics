@@ -15,7 +15,7 @@
         tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } } }
     </script>
     <style>
-        *{font-family:'Inter',system-ui,sans-serif}body{background:#f7f8fa}
+        *{font-family:'Inter',system-ui,sans-serif}body{background:#f7fafc}
         input[type="range"]{-webkit-appearance:none;appearance:none;width:100%;height:5px;border-radius:3px;background:#e2e8f0;outline:none}
         input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;background:#635bff;cursor:pointer;border:3px solid #fff;box-shadow:0 1px 4px rgba(99,91,255,.4);transition:transform .15s}
         input[type="range"]::-webkit-slider-thumb:hover{transform:scale(1.15);box-shadow:0 2px 8px rgba(99,91,255,.5)}
@@ -25,15 +25,29 @@
         .card:nth-child(5){animation-delay:.25s}.card:nth-child(6){animation-delay:.3s}.card:nth-child(7){animation-delay:.35s}.card:nth-child(8){animation-delay:.4s}
         @keyframes fu{to{opacity:1;transform:translateY(0)}}
         .sb::-webkit-scrollbar{width:4px}.sb::-webkit-scrollbar-track{background:transparent}.sb::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:2px}
+        [data-tip]{position:relative}
+        [data-tip]:hover{z-index:60}
+        [data-tip]::after{content:attr(data-tip);position:absolute;z-index:100;left:50%;transform:translateX(-50%) translateY(4px);bottom:auto;top:100%;
+            background:#0a2540;color:#e2e8f0;font-size:11px;font-weight:400;line-height:1.45;padding:7px 11px;border-radius:8px;
+            white-space:normal;width:max-content;max-width:240px;pointer-events:none;opacity:0;transition:opacity .2s .35s,transform .2s .35s;
+            box-shadow:0 4px 16px rgba(0,0,0,.18);font-family:'Inter',system-ui,sans-serif}
+        [data-tip]:hover::after{opacity:1;transform:translateX(-50%) translateY(8px)}
+        [data-tip].tip-left::after{left:0;transform:translateX(0) translateY(4px)}
+        [data-tip].tip-left:hover::after{transform:translateX(0) translateY(8px)}
+        [data-tip].tip-right::after{left:auto;right:0;transform:translateX(0) translateY(4px)}
+        [data-tip].tip-right:hover::after{transform:translateX(0) translateY(8px)}
     </style>
 </head>
 <body class="min-h-screen">
 <div id="app">
 <div class="flex flex-col lg:flex-row min-h-screen">
 
+<!-- Mobile overlay -->
+<div v-if="sidebarOpen" @click="sidebarOpen=false" class="fixed inset-0 bg-black/30 z-40 lg:hidden transition-opacity"></div>
+
 <!-- ═══════ SIDEBAR ═══════ -->
-<aside class="w-full lg:w-80 xl:w-[340px] bg-white border-b lg:border-b-0 lg:border-r border-gray-200 flex-shrink-0">
-<div class="lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto sb">
+<aside :class="sidebarOpen?'translate-x-0':'-translate-x-full lg:translate-x-0'" class="fixed lg:static inset-y-0 left-0 z-50 w-80 xl:w-[340px] bg-white border-r border-gray-200 flex-shrink-0 transition-transform duration-300 ease-in-out">
+<div class="lg:sticky lg:top-0 lg:h-screen h-full overflow-y-auto sb">
     <!-- Logo -->
     <div class="px-5 pt-5 pb-3 border-b border-gray-100">
         <div class="flex items-center gap-2.5 mb-1">
@@ -42,6 +56,9 @@
             </div>
             <span class="text-lg font-bold text-gray-900">GiftHorse</span>
             <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#635bff]/10 text-[#635bff]">SIM 3.0</span>
+            <button @click="sidebarOpen=false" class="ml-auto lg:hidden p-1 rounded-md hover:bg-gray-100 text-gray-400">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
         </div>
         <p class="text-[11px] text-gray-400">Unit Economics Simulator &bull; 28 months</p>
     </div>
@@ -58,19 +75,19 @@
             </div>
             <div class="space-y-3.5">
                 <div>
-                    <div class="flex justify-between mb-1"><span class="text-[11px] font-medium text-gray-500">Retention M1</span><span class="text-[11px] font-bold tabular-nums" :class="retention_m1==35?'text-gray-400':'text-[#635bff]'">{{retention_m1}}%</span></div>
+                    <div class="flex justify-between mb-1"><span class="text-[11px] font-medium text-gray-500 tip-left" data-tip="% of new users still active after their first month. Base: 35%">Retention M1 <svg class="w-3 h-3 inline text-gray-300" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg></span><span class="text-[11px] font-bold tabular-nums" :class="retention_m1==35?'text-gray-400':'text-[#635bff]'">{{retention_m1}}%</span></div>
                     <input type="range" v-model.number="retention_m1" min="15" max="60" step="1">
                 </div>
                 <div>
-                    <div class="flex justify-between mb-1"><span class="text-[11px] font-medium text-gray-500">Retention M2+</span><span class="text-[11px] font-bold tabular-nums" :class="retention_m2==85?'text-gray-400':'text-[#635bff]'">{{retention_m2}}%</span></div>
+                    <div class="flex justify-between mb-1"><span class="text-[11px] font-medium text-gray-500 tip-left" data-tip="Monthly retention for users past month 1. Compounds each month — 85% means ~44% survive 6 months">Retention M2+ <svg class="w-3 h-3 inline text-gray-300" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg></span><span class="text-[11px] font-bold tabular-nums" :class="retention_m2==85?'text-gray-400':'text-[#635bff]'">{{retention_m2}}%</span></div>
                     <input type="range" v-model.number="retention_m2" min="50" max="98" step="1">
                 </div>
                 <div>
-                    <div class="flex justify-between mb-1"><span class="text-[11px] font-medium text-gray-500">Invite &rarr; Active</span><span class="text-[11px] font-bold tabular-nums" :class="invite_conv==20?'text-gray-400':'text-[#635bff]'">{{invite_conv}}%</span></div>
+                    <div class="flex justify-between mb-1"><span class="text-[11px] font-medium text-gray-500 tip-left" data-tip="% of sent invitations that convert to active users. Higher = stronger viral loop">Invite &rarr; Active <svg class="w-3 h-3 inline text-gray-300" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg></span><span class="text-[11px] font-bold tabular-nums" :class="invite_conv==20?'text-gray-400':'text-[#635bff]'">{{invite_conv}}%</span></div>
                     <input type="range" v-model.number="invite_conv" min="5" max="50" step="1">
                 </div>
                 <div>
-                    <div class="flex justify-between mb-1"><span class="text-[11px] font-medium text-gray-500">Invites / User / mo</span><span class="text-[11px] font-bold tabular-nums" :class="invites_per_user==0.8?'text-gray-400':'text-[#635bff]'">{{invites_per_user.toFixed(1)}}</span></div>
+                    <div class="flex justify-between mb-1"><span class="text-[11px] font-medium text-gray-500 tip-left" data-tip="Avg invitations sent per active user per month. K-factor = invites x conversion. K > 1 = exponential growth">Invites / User / mo <svg class="w-3 h-3 inline text-gray-300" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg></span><span class="text-[11px] font-bold tabular-nums" :class="invites_per_user==0.8?'text-gray-400':'text-[#635bff]'">{{invites_per_user.toFixed(1)}}</span></div>
                     <input type="range" v-model.number="invites_per_user" min="0.1" max="3.0" step="0.1">
                 </div>
             </div>
@@ -82,7 +99,7 @@
             <div class="space-y-3">
                 <div v-for="ch in channels" :key="ch.key">
                     <div class="flex justify-between mb-1">
-                        <span class="text-[11px] font-medium text-gray-500 flex items-center gap-1"><span class="w-2 h-2 rounded-sm" :style="{background:ch.color}"></span>{{ch.label}}</span>
+                        <span class="text-[11px] font-medium text-gray-500 flex items-center gap-1 tip-left" :data-tip="ch.tip"><span class="w-2 h-2 rounded-sm" :style="{background:ch.color}"></span>{{ch.label}} <svg class="w-3 h-3 text-gray-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg></span>
                         <span class="text-[11px] font-bold tabular-nums" :class="convMultipliers[ch.key]==1?'text-gray-400':'text-[#635bff]'">x{{convMultipliers[ch.key].toFixed(2)}}</span>
                     </div>
                     <input type="range" v-model.number="convMultipliers[ch.key]" min="0.5" max="3.0" step="0.05">
@@ -94,10 +111,22 @@
         <div class="pt-4 border-t border-gray-100">
             <h3 class="text-xs font-semibold text-gray-900 mb-2">Quick Scenarios</h3>
             <div class="grid grid-cols-2 gap-1.5">
-                <button @click="applyScenario('pessimistic')" class="text-[11px] font-medium px-2.5 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:border-red-300 hover:text-red-600 hover:bg-red-50 transition-all">Pessimistic</button>
-                <button @click="applyScenario('base')" class="text-[11px] font-medium px-2.5 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:border-gray-400 hover:bg-gray-50 transition-all">Base Case</button>
-                <button @click="applyScenario('optimistic')" class="text-[11px] font-medium px-2.5 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:border-green-300 hover:text-green-600 hover:bg-green-50 transition-all">Optimistic</button>
-                <button @click="applyScenario('viral')" class="text-[11px] font-medium px-2.5 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:border-purple-300 hover:text-purple-600 hover:bg-purple-50 transition-all">Viral Boom</button>
+                <button @click="applyScenario('pessimistic')" class="flex items-center justify-center gap-1 text-[11px] font-medium px-2.5 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:border-red-300 hover:text-red-600 hover:bg-red-50 transition-all">
+                    <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/></svg>
+                    Pessimistic
+                </button>
+                <button @click="applyScenario('base')" class="flex items-center justify-center gap-1 text-[11px] font-medium px-2.5 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:border-gray-400 hover:bg-gray-50 transition-all">
+                    <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Base Case
+                </button>
+                <button @click="applyScenario('optimistic')" class="flex items-center justify-center gap-1 text-[11px] font-medium px-2.5 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:border-green-300 hover:text-green-600 hover:bg-green-50 transition-all">
+                    <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                    Optimistic
+                </button>
+                <button @click="applyScenario('viral')" class="flex items-center justify-center gap-1 text-[11px] font-medium px-2.5 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:border-purple-300 hover:text-purple-600 hover:bg-purple-50 transition-all">
+                    <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    Viral Boom
+                </button>
             </div>
         </div>
 
@@ -119,9 +148,14 @@
     <!-- Top bar -->
     <div class="bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8 py-3">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <div>
+            <div class="flex items-center gap-3">
+                <button @click="sidebarOpen=true" class="lg:hidden p-1.5 -ml-1.5 rounded-lg hover:bg-gray-100 text-gray-500">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+                <div>
                 <h1 class="text-lg font-semibold text-gray-900">Unit Economics Dashboard</h1>
                 <p class="text-xs text-gray-500">28-month forecast &bull; Dec 2025 — Apr 2028 &bull; 6 revenue channels</p>
+                </div>
             </div>
             <div v-if="breakevenMonth" class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#00d4aa]/10 text-[#00d4aa] text-xs font-semibold border border-[#00d4aa]/20">
                 <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
@@ -136,42 +170,42 @@
     <div class="px-4 sm:px-6 lg:px-8 py-5 space-y-5">
         <!-- KPI Cards -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <div class="card bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <div class="card bg-white rounded-xl p-4 shadow-sm border border-gray-100 tip-left" data-tip="Sum of all 6 channel revenues across the full 28-month forecast period">
                 <p class="text-[11px] font-medium text-gray-500 mb-0.5">Total Revenue (28m)</p>
                 <p class="text-xl font-bold text-gray-900 tabular-nums">{{fmtMoney(totalRevenue)}}</p>
                 <p class="text-[10px] mt-1 tabular-nums" :class="revDelta>=0?'text-[#00d4aa]':'text-red-500'">{{revDelta>=0?'↑':'↓'}} {{Math.abs(revDelta).toFixed(1)}}%</p>
             </div>
-            <div class="card bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <div class="card bg-white rounded-xl p-4 shadow-sm border border-gray-100" data-tip="Gross profit minus all costs: $70K fixed + $25K acquisition + bizdev commissions + taxes">
                 <p class="text-[11px] font-medium text-gray-500 mb-0.5">Net Profit (28m)</p>
                 <p class="text-xl font-bold tabular-nums" :class="totalProfit>=0?'text-[#00d4aa]':'text-red-500'">{{fmtMoney(totalProfit)}}</p>
                 <p class="text-[10px] mt-1 tabular-nums" :class="profDelta>=0?'text-[#00d4aa]':'text-red-500'">{{profDelta>=0?'↑':'↓'}} {{Math.abs(profDelta).toFixed(1)}}%</p>
             </div>
-            <div class="card bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <div class="card bg-white rounded-xl p-4 shadow-sm border border-gray-100" data-tip="First month where monthly net profit turns positive — the project starts paying for itself">
                 <p class="text-[11px] font-medium text-gray-500 mb-0.5">Breakeven Month</p>
                 <p class="text-xl font-bold tabular-nums" :class="breakevenMonth?'text-[#00d4aa]':'text-red-500'">{{breakevenMonth?'M'+breakevenMonth:'N/A'}}</p>
                 <p class="text-[10px] text-gray-400 mt-1">{{breakevenMonth?'Net profit > 0':'Not reached'}}</p>
             </div>
-            <div class="card bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <div class="card bg-white rounded-xl p-4 shadow-sm border border-gray-100 tip-right" data-tip="Blended user acquisition cost = total ad spend / (organic + viral new users). Decreases as viral share grows">
                 <p class="text-[11px] font-medium text-gray-500 mb-0.5">Avg UAC</p>
                 <p class="text-xl font-bold text-gray-900 tabular-nums">${{avgUAC.toFixed(2)}}</p>
                 <p class="text-[10px] text-gray-400 mt-1">Blended acq. cost</p>
             </div>
-            <div class="card bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <div class="card bg-white rounded-xl p-4 shadow-sm border border-gray-100 tip-left" data-tip="Total active users at the end of month 28 — includes organic retained + viral cohorts">
                 <p class="text-[11px] font-medium text-gray-500 mb-0.5">Peak Users (M28)</p>
                 <p class="text-xl font-bold text-gray-900 tabular-nums">{{fmtNum(peakUsers)}}</p>
                 <p class="text-[10px] mt-1 tabular-nums" :class="userDelta>=0?'text-[#00d4aa]':'text-red-500'">{{userDelta>=0?'↑':'↓'}} {{Math.abs(userDelta).toFixed(1)}}%</p>
             </div>
-            <div class="card bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <div class="card bg-white rounded-xl p-4 shadow-sm border border-gray-100" data-tip="Estimated share of users who make at least one purchase, based on channel conversion rates (donations 5%, partners 3.5%, etc.)">
                 <p class="text-[11px] font-medium text-gray-500 mb-0.5">Paying Users</p>
                 <p class="text-xl font-bold text-gray-900 tabular-nums">{{payingUsersPct}}%</p>
                 <p class="text-[10px] text-gray-400 mt-1">buyers / total users</p>
             </div>
-            <div class="card bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+            <div class="card bg-white rounded-xl p-4 shadow-sm border border-gray-100" data-tip="% of total users at M28 who came through viral referrals (invites). Higher = lower effective UAC">
                 <p class="text-[11px] font-medium text-gray-500 mb-0.5">Viral Share</p>
                 <p class="text-xl font-bold text-[#8b5cf6] tabular-nums">{{viralPct}}%</p>
                 <p class="text-[10px] text-gray-400 mt-1">of total users at M28</p>
             </div>
-            <div class="card bg-gradient-to-br from-[#635bff] to-purple-600 rounded-xl p-4 shadow-md text-white">
+            <div class="card bg-gradient-to-br from-[#635bff] to-purple-600 rounded-xl p-4 shadow-md text-white tip-right" data-tip="Lifetime value per user / acquisition cost. >3x is healthy, >5x is great, >10x is outstanding">
                 <p class="text-[11px] font-medium text-white/70 mb-0.5">LTV / UAC</p>
                 <p class="text-xl font-bold tabular-nums">{{ltvUac}}x</p>
                 <p class="text-[10px] text-white/50 mt-1">Unit economics ratio</p>
@@ -181,22 +215,34 @@
         <!-- Charts 2x2 -->
         <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
             <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-                <h3 class="text-sm font-semibold text-gray-900 mb-0.5">Revenue by Channel</h3>
+                <div class="flex items-start gap-1.5 mb-0.5">
+                    <h3 class="text-sm font-semibold text-gray-900">Revenue by Channel</h3>
+                    <span class="tip-left" data-tip="Monthly revenue from each source: Donations, Partners, Subscriptions, Amazon Certificates, Affiliates, and Banner Ads. Scales with simulated users x monetization multiplier"><svg class="w-3.5 h-3.5 text-gray-300 mt-0.5 flex-shrink-0 cursor-help" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg></span>
+                </div>
                 <p class="text-[11px] text-gray-500 mb-4">Monthly stacked — 6 channels</p>
                 <div class="h-60 sm:h-68"><canvas id="chRevenue"></canvas></div>
             </div>
             <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-                <h3 class="text-sm font-semibold text-gray-900 mb-0.5">Gross Profit by Channel</h3>
+                <div class="flex items-start gap-1.5 mb-0.5">
+                    <h3 class="text-sm font-semibold text-gray-900">Gross Profit by Channel</h3>
+                    <span class="tip-right" data-tip="Revenue x margin per channel. Subscriptions (85%) and Partners (15% net) dominate profit; Ads (97% margin) and Donations (3%) contribute differently"><svg class="w-3.5 h-3.5 text-gray-300 mt-0.5 flex-shrink-0 cursor-help" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg></span>
+                </div>
                 <p class="text-[11px] text-gray-500 mb-4">Margin contribution per source</p>
                 <div class="h-60 sm:h-68"><canvas id="chGP"></canvas></div>
             </div>
             <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-                <h3 class="text-sm font-semibold text-gray-900 mb-0.5">Path to Profitability</h3>
+                <div class="flex items-start gap-1.5 mb-0.5">
+                    <h3 class="text-sm font-semibold text-gray-900">Path to Profitability</h3>
+                    <span class="tip-left" data-tip="Monthly net profit = gross profit minus all costs. Red when negative, green when positive. Dashed vertical line marks the breakeven month"><svg class="w-3.5 h-3.5 text-gray-300 mt-0.5 flex-shrink-0 cursor-help" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg></span>
+                </div>
                 <p class="text-[11px] text-gray-500 mb-4">Monthly net profit — breakeven marker</p>
                 <div class="h-60 sm:h-68"><canvas id="chProfit"></canvas></div>
             </div>
             <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-                <h3 class="text-sm font-semibold text-gray-900 mb-0.5">Expenses Breakdown</h3>
+                <div class="flex items-start gap-1.5 mb-0.5">
+                    <h3 class="text-sm font-semibold text-gray-900">Expenses Breakdown</h3>
+                    <span class="tip-right" data-tip="Monthly cost structure: $70K fixed ops + $25K user acquisition + bizdev commissions (20% of Partners & Affiliates GP) + taxes (9% of GP from month 14)"><svg class="w-3.5 h-3.5 text-gray-300 mt-0.5 flex-shrink-0 cursor-help" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg></span>
+                </div>
                 <p class="text-[11px] text-gray-500 mb-4">Fixed, Acquisition, Bizdev, Taxes</p>
                 <div class="h-60 sm:h-68"><canvas id="chExpenses"></canvas></div>
             </div>
@@ -205,9 +251,12 @@
         <!-- Full width: Users -->
         <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
             <div class="flex items-center justify-between mb-4">
-                <div>
-                    <h3 class="text-sm font-semibold text-gray-900 mb-0.5">User Growth</h3>
-                    <p class="text-[11px] text-gray-500">Total, Organic, Viral — 28 months</p>
+                <div class="flex items-start gap-1.5">
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-900 mb-0.5">User Growth</h3>
+                        <p class="text-[11px] text-gray-500">Total, Organic, Viral — 28 months</p>
+                    </div>
+                    <span class="tip-left" data-tip="Cohort-based model: each monthly cohort (organic + viral) decays by retention rates. Viral users = active users x invites/user x invite conversion. Gray bars show new users entering each month"><svg class="w-3.5 h-3.5 text-gray-300 mt-0.5 flex-shrink-0 cursor-help" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg></span>
                 </div>
                 <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-[#635bff]/10 text-[#635bff]">{{fmtNum(peakUsers)}} by M28</span>
             </div>
@@ -217,9 +266,12 @@
         <!-- Full width: UAC Trend -->
         <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
             <div class="flex items-center justify-between mb-4">
-                <div>
-                    <h3 class="text-sm font-semibold text-gray-900 mb-0.5">UAC Trend</h3>
-                    <p class="text-[11px] text-gray-500">Effective acquisition cost — decreases with viral growth</p>
+                <div class="flex items-start gap-1.5">
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-900 mb-0.5">UAC Trend</h3>
+                        <p class="text-[11px] text-gray-500">Effective acquisition cost — decreases with viral growth</p>
+                    </div>
+                    <span class="tip-left" data-tip="Effective UAC = $25K monthly ad spend / (organic + viral new users). As viral share grows, more users are free — driving UAC down significantly"><svg class="w-3.5 h-3.5 text-gray-300 mt-0.5 flex-shrink-0 cursor-help" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg></span>
                 </div>
                 <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-[#f59e0b]/10 text-[#f59e0b]">${{simMonthlyUAC[27].toFixed(2)}} at M28</span>
             </div>
@@ -275,17 +327,18 @@ const labels = Array.from({length:N},(_,i)=>`M${i+1}`);
 
 // Channel metadata
 const channels = [
-    { key:'donations',  label:'Donations',     color:'#635bff' },
-    { key:'partners',   label:'Partners',      color:'#8b5cf6' },
-    { key:'subs',       label:'Subscriptions',  color:'#00d4aa' },
-    { key:'amazon',     label:'Amazon Certs',   color:'#f59e0b' },
-    { key:'affiliates', label:'Affiliates',     color:'#64748b' },
-    { key:'ads',        label:'Banner Ads',     color:'#ec4899' }
+    { key:'donations',  label:'Donations',     color:'#635bff', tip:'Fundraising donations. Margin 3% (7% our fee − 4% Stripe). Base conv. 5%' },
+    { key:'partners',   label:'Partners',      color:'#8b5cf6', tip:'Local partner catalog sales. Margin 15% − 3.2% Stripe − 20% bizdev. Base conv. 3.5%' },
+    { key:'subs',       label:'Subscriptions',  color:'#00d4aa', tip:'Monthly subscription tiers (Max + Pro). Margin 85%. Base penetration 1.5%' },
+    { key:'amazon',     label:'Amazon Certs',   color:'#f59e0b', tip:'Amazon gift certificate purchases. Margin 2%. Base conv. 1.5%' },
+    { key:'affiliates', label:'Affiliates',     color:'#64748b', tip:'Affiliate marketplace purchases. Margin 3.5% − 20% bizdev fee. Base conv. 1.5%' },
+    { key:'ads',        label:'Banner Ads',     color:'#ec4899', tip:'In-app banner advertising. Margin 97%. Base eCPM $2.40' }
 ];
 
 // ═══════════════════════════════
 //  SLIDERS
 // ═══════════════════════════════
+const sidebarOpen = ref(false);
 const retention_m1 = ref(35);
 const retention_m2 = ref(85);
 const invite_conv = ref(20);
@@ -343,6 +396,7 @@ const simOrganic = computed(() => B.users_organic.map((v, i) =>
     Math.round(v * (cohortBase.org[i] > 0 ? cohortSim.value.org[i] / cohortBase.org[i] : 1))
 ));
 const simViral = computed(() => simUsers.value.map((v, i) => Math.max(0, v - simOrganic.value[i])));
+const simNewPerMonth = computed(() => B.users_new_organic.map((v, i) => v + cohortSim.value.vNew[i]));
 
 // Revenue per channel
 const sr = (base, key) => computed(() => base.map((v, i) => Math.round(v * userRatio.value[i] * convMultipliers[key])));
@@ -537,15 +591,17 @@ function initCharts() {
     C.users = new Chart(uCtx,{
         type:'line',
         data:{labels,datasets:[
-            {label:'Total Users',data:simUsers.value,borderColor:'#635bff',backgroundColor:gTotal,borderWidth:2.5,fill:true,tension:.4,pointRadius:0,pointHoverRadius:5},
-            {label:'Organic',data:simOrganic.value,borderColor:'#94a3b8',borderWidth:1.5,borderDash:[5,3],fill:false,tension:.4,pointRadius:0,pointHoverRadius:4},
-            {label:'Viral',data:simViral.value,borderColor:'#8b5cf6',backgroundColor:gViral,borderWidth:2,fill:true,tension:.4,pointRadius:0,pointHoverRadius:4}
+            {label:'New Users/mo',data:simNewPerMonth.value,type:'bar',backgroundColor:'rgba(148,163,184,.25)',borderColor:'rgba(148,163,184,.4)',borderWidth:1,borderRadius:2,order:4,yAxisID:'y1'},
+            {label:'Total Users',data:simUsers.value,borderColor:'#635bff',backgroundColor:gTotal,borderWidth:2.5,fill:true,tension:.4,pointRadius:0,pointHoverRadius:5,order:1},
+            {label:'Organic',data:simOrganic.value,borderColor:'#94a3b8',borderWidth:1.5,borderDash:[5,3],fill:false,tension:.4,pointRadius:0,pointHoverRadius:4,order:2},
+            {label:'Viral',data:simViral.value,borderColor:'#8b5cf6',backgroundColor:gViral,borderWidth:2,fill:true,tension:.4,pointRadius:0,pointHoverRadius:4,order:3}
         ]},
         options:{responsive:true,maintainAspectRatio:false,interaction:{intersect:false,mode:'index'},
             plugins:{legend:{display:true,position:'bottom',labels:{usePointStyle:true,pointStyle:'circle',padding:14,font:{size:10}}},
                 tooltip:{...TT,callbacks:{label:c=>`${c.dataset.label}: ${c.parsed.y.toLocaleString()}`}}},
             scales:{x:{grid:{display:false},ticks:{font:{size:9},maxTicksLimit:14}},
-                y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{size:9},callback:fmtTick}}},
+                y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{size:9},callback:fmtTick},position:'left'},
+                y1:{grid:{display:false},ticks:{font:{size:9},callback:fmtTick},position:'right',beginAtZero:true}},
             animation:{duration:500,easing:'easeOutQuart'}}
     });
 
@@ -608,9 +664,10 @@ function updateCharts() {
     C.exp.update('active');
 
     // Users
-    C.users.data.datasets[0].data = simUsers.value;
-    C.users.data.datasets[1].data = simOrganic.value;
-    C.users.data.datasets[2].data = simViral.value;
+    C.users.data.datasets[0].data = simNewPerMonth.value;
+    C.users.data.datasets[1].data = simUsers.value;
+    C.users.data.datasets[2].data = simOrganic.value;
+    C.users.data.datasets[3].data = simViral.value;
     C.users.update('active');
 
     // UAC
@@ -628,8 +685,8 @@ watch([retention_m1, retention_m2, invite_conv, invites_per_user,
 onMounted(() => nextTick(initCharts));
 
 return {
-    retention_m1, retention_m2, invite_conv, invites_per_user, convMultipliers,
-    channels, simUsers, simOrganic, simViral, simNetProfit,
+    sidebarOpen, retention_m1, retention_m2, invite_conv, invites_per_user, convMultipliers,
+    channels, simUsers, simOrganic, simViral, simNewPerMonth, simNetProfit,
     totalRevenue, totalProfit, breakevenMonth, peakUsers, viralPct,
     payingUsersPct, avgUAC, ltvUac, simMonthlyUAC,
     revDelta, profDelta, userDelta,

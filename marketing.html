@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GiftHorse Marketing Funnels Dashboard</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; min-height: 100vh; }
+.container { max-width: 1400px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); overflow: hidden; }
+
+/* HEADER */
+.header { background: linear-gradient(135deg, #0066CC 0%, #004C99 100%); color: white; padding: 30px; text-align: center; }
+.header h1 { font-size: 2rem; margin-bottom: 10px; }
+.header p { opacity: 0.9; font-size: 1rem; }
+
+/* FILTERS */
+.filters { background: #f8f9fa; padding: 20px 30px; border-bottom: 2px solid #e9ecef; display: flex; gap: 20px; flex-wrap: wrap; align-items: center; }
+.filter-group { display: flex; flex-direction: column; gap: 5px; }
+.filter-group label { font-size: 0.85rem; font-weight: 600; color: #495057; }
+.filter-group select { padding: 8px 12px; border: 1px solid #ced4da; border-radius: 6px; font-size: 0.9rem; cursor: pointer; transition: all 0.3s; }
+.filter-group select:hover { border-color: #0066CC; }
+
+/* TABLE */
+.table-container { padding: 30px; overflow-x: auto; padding-bottom: 100px; /* Space for tooltips */ }
+table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.85rem; }
+
+thead th { background: #4472C4; color: white; padding: 15px 10px; text-align: left; font-weight: 600; position: sticky; top: 0; z-index: 10; border-bottom: 2px solid #fff; }
+tbody td { padding: 15px 10px; border-bottom: 1px solid #e9ecef; vertical-align: top; }
+
+/* ROW STYLES & HOVER FIXES */
+tbody tr { transition: all 0.2s; }
+
+/* Specific Channel Styles */
+.channel-donations { background: #D9E1F2; }
+.channel-amazon { background: #FCE4D6; }
+.channel-affiliates { background: #E2EFDA; }
+.channel-partners { background: #FFF2CC; }
+.channel-subs { background: #F4B084; color: white; }
+
+/* HOVER EFFECT FIX */
+/* When hovering any row, make background light gray */
+tbody tr:hover { background: #f8f9fa !important; transform: scale(1.01); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+/* CRITICAL FIX: When hovering the Subscription row (which was white text), change text to dark */
+tbody tr.channel-subs:hover { color: #333333 !important; }
+tbody tr.channel-subs:hover td.channel-cell { color: #333333 !important; }
+
+.channel-cell { font-weight: 700; font-size: 0.95rem; }
+
+/* METRICS */
+.metric-box { display: inline-block; padding: 4px 10px; border-radius: 4px; font-weight: 600; }
+.cac-low { background: #d4edda; color: #155724; }
+.cac-medium { background: #fff3cd; color: #856404; }
+.cac-high { background: #f8d7da; color: #721c24; }
+.romi-excellent { background: #28a745; color: white; }
+.romi-good { background: #ffc107; color: #333; }
+.romi-ok { background: #6c757d; color: white; }
+.stat-card { text-align: center; }
+.stat-number { font-size: 1.2rem; font-weight: 700; color: #0066CC; }
+
+/* TOOLTIPS CSS */
+.term-with-tooltip {
+    border-bottom: 1px dashed #666;
+    cursor: help;
+    position: relative;
+    display: inline-block;
+}
+.channel-subs .term-with-tooltip { border-bottom-color: rgba(255,255,255,0.8); }
+/* Fix border color on hover for subs */
+tbody tr.channel-subs:hover .term-with-tooltip { border-bottom-color: #666; }
+
+.tooltip-content {
+    visibility: hidden;
+    width: 250px;
+    background-color: #333;
+    color: #fff;
+    text-align: left;
+    border-radius: 6px;
+    padding: 10px;
+    position: absolute;
+    z-index: 100;
+    bottom: 125%; /* Position above */
+    left: 50%;
+    margin-left: -125px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-weight: normal;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.tooltip-content::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #333 transparent transparent transparent;
+}
+
+.term-with-tooltip:hover .tooltip-content {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* SUMMARY */
+.summary { background: #f8f9fa; padding: 20px 30px; border-top: 2px solid #e9ecef; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+.summary-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.summary-card h3 { color: #0066CC; margin-bottom: 10px; font-size: 1.1rem; }
+.summary-card p { color: #495057; font-size: 0.9rem; line-height: 1.6; }
+
+@media (max-width: 768px) {
+    .header h1 { font-size: 1.5rem; }
+    .filters { flex-direction: column; }
+    table { font-size: 0.75rem; }
+    .tooltip-content { width: 200px; margin-left: -100px; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>🎁 GiftHorse Marketing Funnels (v2.1)</h1>
+        <p>Детализация с пояснениями метрик и сегментов</p>
+    </div>
+
+    <div class="filters">
+        <div class="filter-group">
+            <label for="channelFilter">Канал монетизации:</label>
+            <select id="channelFilter" onchange="filterTable()">
+                <option value="all">Все каналы</option>
+                <option value="DONATIONS">Donations (Сборы)</option>
+                <option value="AMAZON">Amazon (Сертификаты)</option>
+                <option value="AFFILIATES">Affiliates (Товары)</option>
+                <option value="PARTNERS">Local Partners (Впечатления)</option>
+                <option value="SUBS">Subscriptions (Premium)</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="trafficFilter">Источник трафика:</label>
+            <select id="trafficFilter" onchange="filterTable()">
+                <option value="all">Все источники</option>
+                <option value="organic">Organic / Viral</option>
+                <option value="paid">Paid Ads</option>
+                <option value="content">Content Marketing</option>
+                <option value="social">Social Media</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table id="mainTable">
+            <thead>
+                <tr>
+                    <th>Канал</th>
+                    <th>Источник трафика</th>
+                    <th>CAC</th>
+                    <th>ЦА (сегмент)</th>
+                    <th>Демография</th>
+                    <th>Интересы</th>
+                    <th>Главная боль</th>
+                    <th>Наше решение</th>
+                    <th>Conv%</th>
+                    <th>Чек</th>
+                    <th>LTV 12M</th>
+                    <th>ROMI</th>
+                    <th>Комментарий</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- DONATIONS -->
+                <tr data-channel="DONATIONS" data-traffic="organic" class="channel-donations">
+                    <td class="channel-cell">DONATIONS<br><small>(Сборы)</small></td>
+                    <td>Виральный / Organic</td>
+                    <td><span class="metric-box cac-low">$0-2</span></td>
+                    <td>Социально-активные</td>
+                    <td>25-34, М/Ж 50/50</td>
+                    <td>Корпоративы, праздники</td>
+                    <td>Неудобно собирать в чатах</td>
+                    <td>Авто-трекинг, прозрачность</td>
+                    <td>11-17%</td>
+                    <td>$35</td>
+                    <td><div class="stat-card"><div class="stat-number">$175</div></div></td>
+                    <td><span class="metric-box romi-excellent">8750%</span></td>
+                    <td>Самый high-ROI канал</td>
+                </tr>
+                <tr data-channel="DONATIONS" data-traffic="paid" class="channel-donations">
+                    <td></td>
+                    <td>FB/IG Event Targeting</td>
+                    <td><span class="metric-box cac-medium">$8-12</span></td>
+                    <td>Организаторы</td>
+                    <td>28-42, Ж 65%</td>
+                    <td>HR, родкомитеты</td>
+                    <td>Стыдно напоминать о долгах</td>
+                    <td>Красивые отчеты, напоминания</td>
+                    <td>8-12%</td>
+                    <td>$50</td>
+                    <td><div class="stat-card"><div class="stat-number">$200</div></div></td>
+                    <td><span class="metric-box romi-excellent">1667%</span></td>
+                    <td>Высокий LTV у организаторов</td>
+                </tr>
+
+                <!-- AMAZON -->
+                <tr data-channel="AMAZON" data-traffic="organic" class="channel-amazon">
+                    <td class="channel-cell">AMAZON<br><small>(Сертификаты)</small></td>
+                    <td>SEO / Organic Search</td>
+                    <td><span class="metric-box cac-low">$1.5-3</span></td>
+                    <td>
+                        <span class="term-with-tooltip">Late gifters
+                            <span class="tooltip-content">Люди, которые покупают подарок в последний момент (за 1-2 дня или в день события). Для них скорость доставки важнее цены.</span>
+                        </span>
+                    </td>
+                    <td>18-55, М/Ж 45/55</td>
+                    <td>Онлайн-шоппинг, геймеры</td>
+                    <td>Нет времени ходить по магазинам</td>
+                    <td>Instant delivery, универсальность</td>
+                    <td>1.5-2.5%</td>
+                    <td>$75</td>
+                    <td><div class="stat-card"><div class="stat-number">$90</div></div></td>
+                    <td><span class="metric-box romi-ok">180%</span></td>
+                    <td>Работает на объемах</td>
+                </tr>
+                <tr data-channel="AMAZON" data-traffic="paid" class="channel-amazon">
+                    <td></td>
+                    <td>Google Ads</td>
+                    <td><span class="metric-box cac-medium">$4-6</span></td>
+                    <td>Срочные покупатели</td>
+                    <td>25-45, М 55%</td>
+                    <td>Забыли про праздник</td>
+                    <td>Боюсь не угадать с подарком</td>
+                    <td>Бренд Amazon (доверие)</td>
+                    <td>2-3%</td>
+                    <td>$100</td>
+                    <td><div class="stat-card"><div class="stat-number">$120</div></div></td>
+                    <td><span class="metric-box romi-good">500%</span></td>
+                    <td>Сезонные пики (НГ, 8 Марта)</td>
+                </tr>
+
+                <!-- AFFILIATES -->
+                <tr data-channel="AFFILIATES" data-traffic="content" class="channel-affiliates">
+                    <td class="channel-cell">AFFILIATES<br><small>(Товары)</small></td>
+                    <td>Content Marketing</td>
+                    <td><span class="metric-box cac-medium">$10-15</span></td>
+                    <td>Trend seekers</td>
+                    <td>20-40, Ж 70%</td>
+                    <td>DIY, декор, мода, эко</td>
+                    <td>Хочу оригинальный, не масс-маркет</td>
+                    <td>Курируемые подборки, AI</td>
+                    <td>3-5%</td>
+                    <td>$60</td>
+                    <td><div class="stat-card"><div class="stat-number">$240</div></div></td>
+                    <td><span class="metric-box romi-excellent">1500%</span></td>
+                    <td>Высокая вовлеченность</td>
+                </tr>
+                <tr data-channel="AFFILIATES" data-traffic="social" class="channel-affiliates">
+                    <td></td>
+                    <td>TikTok / Reels Ads</td>
+                    <td><span class="metric-box cac-high">$15-25</span></td>
+                    <td>Gen Z / Millennials</td>
+                    <td>18-32, Ж 75%</td>
+                    <td>Визуал, импульсивные покупки</td>
+                    <td>Скучные подарки, нужна WOW-идея</td>
+                    <td>Видео-обзоры, тренды</td>
+                    <td>2-4%</td>
+                    <td>$45</td>
+                    <td><div class="stat-card"><div class="stat-number">$180</div></div></td>
+                    <td><span class="metric-box romi-good">720%</span></td>
+                    <td>Вирусный потенциал</td>
+                </tr>
+
+                <!-- LOCAL PARTNERS (Вернули на базу!) -->
+                <tr data-channel="PARTNERS" data-traffic="social" class="channel-partners">
+                    <td class="channel-cell">PARTNERS<br><small>(Впечатления)</small></td>
+                    <td>Instagram Geo-targeting</td>
+                    <td><span class="metric-box cac-high">$20-30</span></td>
+                    <td>
+                         <span class="term-with-tooltip">Experience seekers
+                            <span class="tooltip-content">Люди, которые ценят эмоции выше вещей. Они предпочитают дарить впечатления (SPA, прыжки, мастер-классы), а не предметы.</span>
+                        </span>
+                    </td>
+                    <td>28-45, М/Ж 40/60</td>
+                    <td>Путешествия, wellness</td>
+                    <td>Подарить эмоции, не знаю мест</td>
+                    <td>Проверенные партнеры, сертификаты</td>
+                    <td>2-3%</td>
+                    <td>$150</td>
+                    <td><div class="stat-card"><div class="stat-number">$450</div></div></td>
+                    <td><span class="metric-box romi-excellent">1500%</span></td>
+                    <td>Высокий чек, premium сегмент</td>
+                </tr>
+                <tr data-channel="PARTNERS" data-traffic="social" class="channel-partners">
+                    <td></td>
+                    <td>Influencer Collaborations</td>
+                    <td><span class="metric-box cac-high">$35-50</span></td>
+                    <td>Followers блогеров</td>
+                    <td>25-38, Ж 65%</td>
+                    <td>Доверяют инфлюенсерам</td>
+                    <td>Много рекламы, сложно отличить</td>
+                    <td>Реальные отзывы, видео</td>
+                    <td>1.5-2.5%</td>
+                    <td>$180</td>
+                    <td><div class="stat-card"><div class="stat-number">$540</div></div></td>
+                    <td><span class="metric-box romi-excellent">1080%</span></td>
+                    <td>High trust traffic</td>
+                </tr>
+
+                <!-- SUBSCRIPTIONS -->
+                <tr data-channel="SUBS" data-traffic="organic" class="channel-subs">
+                    <td class="channel-cell">SUBS<br><small>(Premium)</small></td>
+                    <td>In-App Upsell</td>
+                    <td><span class="metric-box cac-high">$50-70</span></td>
+                    <td>
+                        <span class="term-with-tooltip">Power users
+                            <span class="tooltip-content">Активные пользователи, которые создают сборы регулярно (HR, старосты групп, активисты). Им важны проф. функции.</span>
+                        </span>
+                    </td>
+                    <td>30-50, М/Ж 45/55</td>
+                    <td>Регулярные сборы, эффективность</td>
+                    <td>Комиссии съедают много</td>
+                    <td>0% комиссия, кастомизация</td>
+                    <td>2-5%</td>
+                    <td>$60/yr</td>
+                    <td><div class="stat-card"><div class="stat-number">$180</div></div></td>
+                    <td><span class="metric-box romi-ok">257%</span></td>
+                    <td>
+                         <span class="term-with-tooltip">Конверсия после 3+ активаций
+                            <span class="tooltip-content">Пользователь обычно покупает подписку не сразу, а после того как успешно проведет 3 бесплатных сбора и поймет ценность экономии на комиссиях.</span>
+                        </span>
+                    </td>
+                </tr>
+                <tr data-channel="SUBS" data-traffic="paid" class="channel-subs">
+                    <td></td>
+                    <td>Email / Push Campaigns</td>
+                    <td><span class="metric-box cac-high">$80-120</span></td>
+                    <td>
+                        <span class="term-with-tooltip">Churned users
+                            <span class="tooltip-content">«Отвалившиеся» пользователи: те, кто зарегистрировался, но перестал пользоваться сервисом более 3 месяцев назад. Мы пытаемся их вернуть.</span>
+                        </span>
+                    </td>
+                    <td>28-45, М/Ж 50/50</td>
+                    <td>Пробовали, не стали регулярными</td>
+                    <td>Не видели ценности в Free</td>
+                    <td>Trial 30 дней, демонстрация ROI</td>
+                    <td>1-2%</td>
+                    <td>$60/yr</td>
+                    <td><div class="stat-card"><div class="stat-number">$120</div></div></td>
+                    <td><span class="metric-box romi-ok">100%</span></td>
+                    <td>Возврат ценных юзеров</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="summary">
+        <div class="summary-card">
+            <h3>💡 Подсказка</h3>
+            <p>Наведите курсор на термины с пунктирным подчеркиванием (например, <u>Late gifters</u> или <u>Power users</u>), чтобы увидеть всплывающее пояснение.</p>
+        </div>
+        <div class="summary-card">
+            <h3>💰 Лучший ROMI</h3>
+            <p><strong>Donations (Viral)</strong>: 8750%</p>
+        </div>
+        <div class="summary-card">
+            <h3>💎 Высший LTV</h3>
+            <p><strong>Affiliates (Content)</strong>: $240</p>
+        </div>
+    </div>
+</div>
+
+<script>
+function filterTable() {
+    const channelFilter = document.getElementById('channelFilter').value;
+    const trafficFilter = document.getElementById('trafficFilter').value;
+    const rows = document.querySelectorAll('#mainTable tbody tr');
+
+    rows.forEach(row => {
+        const channel = row.getAttribute('data-channel');
+        const traffic = row.getAttribute('data-traffic');
+
+        let showRow = true;
+        if (channelFilter !== 'all' && channel !== channelFilter) showRow = false;
+        if (trafficFilter !== 'all' && traffic !== trafficFilter) showRow = false;
+
+        row.style.display = showRow ? '' : 'none';
+    });
+}
+</script>
+
+</body>
+</html>

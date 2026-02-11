@@ -55,7 +55,7 @@ tbody tr.channel-subs:hover td.channel-cell { color: #333333 !important; }
 .stat-card { text-align: center; }
 .stat-number { font-size: 1.2rem; font-weight: 700; color: #0066CC; }
 
-/* TOOLTIPS CSS */
+/* TOOLTIPS CSS (FIXED) */
 .term-with-tooltip {
     border-bottom: 1px dashed #666;
     cursor: help;
@@ -75,7 +75,7 @@ tbody tr.channel-subs:hover .term-with-tooltip { border-bottom-color: #666; }
     padding: 12px;
     position: absolute;
     z-index: 100;
-    bottom: 125%;
+    top: 125%;  /* Показываем ВНИЗУ */
     left: 50%;
     margin-left: -140px;
     opacity: 0;
@@ -89,12 +89,12 @@ tbody tr.channel-subs:hover .term-with-tooltip { border-bottom-color: #666; }
 .tooltip-content::after {
     content: "";
     position: absolute;
-    top: 100%;
+    bottom: 100%; /* Стрелка СВЕРХУ */
     left: 50%;
     margin-left: -5px;
     border-width: 5px;
     border-style: solid;
-    border-color: #333 transparent transparent transparent;
+    border-color: transparent transparent #333 transparent; /* Стрелка ВВЕРХ */
 }
 
 .term-with-tooltip:hover .tooltip-content {
@@ -129,8 +129,8 @@ tbody tr.channel-subs:hover .term-with-tooltip { border-bottom-color: #666; }
 
 <div class="container">
     <div class="header">
-        <h1>🎁 GiftHorse Marketing Funnels (v3.0 - Conservative)</h1>
-        <p>Консервативные оценки LTV/ROMI по нижней границе частоты покупок</p>
+        <h1>🎁 GiftHorse Marketing Funnels (v4.0 - Corrected LTV)</h1>
+        <p>LTV пересчитан на основе <strong>чистой маржи</strong> из Unit Economics файла</p>
     </div>
 
     <div class="filters">
@@ -138,11 +138,11 @@ tbody tr.channel-subs:hover .term-with-tooltip { border-bottom-color: #666; }
             <label for="channelFilter">Канал монетизации:</label>
             <select id="channelFilter" onchange="filterTable()">
                 <option value="all">Все каналы</option>
-                <option value="DONATIONS">Donations (Сборы)</option>
-                <option value="AMAZON">Amazon (Сертификаты)</option>
-                <option value="AFFILIATES">Affiliates (Товары)</option>
-                <option value="PARTNERS">Local Partners (Впечатления)</option>
-                <option value="SUBS">Subscriptions (Premium)</option>
+                <option value="DONATIONS">Donations</option>
+                <option value="AMAZON">Amazon</option>
+                <option value="AFFILIATES">Affiliates</option>
+                <option value="PARTNERS">Local Partners</option>
+                <option value="SUBS">Subscriptions</option>
             </select>
         </div>
         <div class="filter-group">
@@ -151,8 +151,6 @@ tbody tr.channel-subs:hover .term-with-tooltip { border-bottom-color: #666; }
                 <option value="all">Все источники</option>
                 <option value="organic">Organic / Viral</option>
                 <option value="paid">Paid Ads</option>
-                <option value="content">Content Marketing</option>
-                <option value="social">Social Media</option>
             </select>
         </div>
     </div>
@@ -164,13 +162,9 @@ tbody tr.channel-subs:hover .term-with-tooltip { border-bottom-color: #666; }
                     <th>Канал</th>
                     <th>Источник трафика</th>
                     <th>CAC</th>
-                    <th>ЦА (сегмент)</th>
-                    <th>Демография</th>
-                    <th>Интересы</th>
-                    <th>Главная боль</th>
-                    <th>Наше решение</th>
                     <th>Conv%</th>
                     <th>Чек</th>
+                    <th>Маржа %</th>
                     <th>LTV 12M</th>
                     <th>ROMI</th>
                     <th>Комментарий</th>
@@ -179,262 +173,162 @@ tbody tr.channel-subs:hover .term-with-tooltip { border-bottom-color: #666; }
             <tbody>
                 <!-- DONATIONS -->
                 <tr data-channel="DONATIONS" data-traffic="organic" class="channel-donations">
-                    <td class="channel-cell">DONATIONS<br><small>(Сборы)</small></td>
+                    <td class="channel-cell">DONATIONS</td>
                     <td>Виральный / Organic</td>
                     <td><span class="metric-box cac-low">$2</span></td>
-                    <td>Социально-активные</td>
-                    <td>25-34, М/Ж 50/50</td>
-                    <td>Корпоративы, праздники</td>
-                    <td>Неудобно собирать в чатах</td>
-                    <td>Авто-трекинг, прозрачность</td>
                     <td>11-17%</td>
+                    <td>$35</td>
+                    <td><strong>7.0%</strong><br><small>($2.45)</small></td>
                     <td>
-                        <span class="term-with-tooltip">$35
-                            <span class="tooltip-content">Психологически комфортная сумма для подарка коллеге/другу (эквивалент 2500-3500₽).</span>
+                        <span class="term-with-tooltip"><div class="stat-number">$12.25</div>
+                            <span class="tooltip-content"><span class="tooltip-formula">$2.45 (margin) × 5 сборов</span>LTV считается от ПРИБЫЛИ, а не от оборота. Частота: 5 раз/год.</span>
                         </span>
                     </td>
-                    <td>
-                        <span class="term-with-tooltip"><div class="stat-number">$175</div>
-                            <span class="tooltip-content"><span class="tooltip-formula">$35 × 5 сборов/год</span>Социально активный человек скидывается минимум 5 раз в год (коллеги, друзья, родственники).</span>
-                        </span>
-                    </td>
-                    <td><span class="metric-box romi-excellent">8650%</span></td>
-                    <td>Самый high-ROI канал за счет виральности</td>
+                    <td><span class="metric-box romi-excellent">513%</span></td>
+                    <td>Высокая частота и виральность спасают модель</td>
                 </tr>
                 <tr data-channel="DONATIONS" data-traffic="paid" class="channel-donations">
-                    <td></td>
+                    <td class="channel-cell"></td>
                     <td>FB/IG Event Targeting</td>
                     <td><span class="metric-box cac-medium">$12</span></td>
-                    <td>Организаторы</td>
-                    <td>28-42, Ж 65%</td>
-                    <td>HR, родкомитеты</td>
-                    <td>Стыдно напоминать о долгах</td>
-                    <td>Красивые отчеты, напоминания</td>
                     <td>8-12%</td>
+                    <td>$50</td>
+                    <td><strong>7.0%</strong><br><small>($3.50)</small></td>
                     <td>
-                        <span class="term-with-tooltip">$50
-                            <span class="tooltip-content">Организаторы собирают на более дорогие подарки (корпоративы, значимые события).</span>
+                        <span class="term-with-tooltip"><div class="stat-number">$14.00</div>
+                            <span class="tooltip-content"><span class="tooltip-formula">$3.50 (margin) × 4 сбора</span>Организаторы делают меньше сборов.</span>
                         </span>
                     </td>
-                    <td>
-                        <span class="term-with-tooltip"><div class="stat-number">$200</div>
-                            <span class="tooltip-content"><span class="tooltip-formula">$50 × 4 сбора/год</span>Организаторы проводят меньше сборов, но с большим чеком.</span>
-                        </span>
-                    </td>
-                    <td><span class="metric-box romi-excellent">1567%</span></td>
-                    <td>Высокий LTV у организаторов</td>
+                    <td><span class="metric-box romi-ok">17%</span></td>
+                    <td>На грани окупаемости. Требует снижения CAC.</td>
                 </tr>
 
                 <!-- AMAZON -->
                 <tr data-channel="AMAZON" data-traffic="organic" class="channel-amazon">
-                    <td class="channel-cell">AMAZON<br><small>(Сертификаты)</small></td>
-                    <td>SEO / Organic Search</td>
+                    <td class="channel-cell">AMAZON</td>
+                    <td>SEO / Organic</td>
                     <td><span class="metric-box cac-low">$3</span></td>
-                    <td>
-                        <span class="term-with-tooltip">Late gifters
-                            <span class="tooltip-content">Люди, которые покупают подарок в последний момент (за 1-2 дня или в день события). Скорость важнее цены.</span>
-                        </span>
-                    </td>
-                    <td>18-55, М/Ж 45/55</td>
-                    <td>Онлайн-шоппинг, геймеры</td>
-                    <td>Нет времени ходить по магазинам</td>
-                    <td>Instant delivery, универсальность</td>
                     <td>1.5-2.5%</td>
+                    <td>$75</td>
+                    <td><strong>2.0%</strong><br><small>($1.50)</small></td>
                     <td>
-                        <span class="term-with-tooltip">$75
-                            <span class="tooltip-content">Сертификаты дарят на $50-100, средневзвешенное значение ~$75.</span>
+                        <span class="term-with-tooltip"><div class="stat-number">$1.50</div>
+                            <span class="tooltip-content"><span class="tooltip-formula">$1.50 × 1 покупка</span>Очень низкая маржа и частота.</span>
                         </span>
                     </td>
-                    <td>
-                        <span class="term-with-tooltip"><div class="stat-number">$75</div>
-                            <span class="tooltip-content"><span class="tooltip-formula">$75 × 1 покупка/год</span>Аварийный сценарий, низкая частота повторных покупок.</span>
-                        </span>
-                    </td>
-                    <td><span class="metric-box romi-excellent">2400%</span></td>
-                    <td>Работает на объемах</td>
+                    <td><span class="metric-box romi-negative">-50%</span></td>
+                    <td>⚠️ Убыточный канал при текущей комиссии 2%</td>
                 </tr>
                 <tr data-channel="AMAZON" data-traffic="paid" class="channel-amazon">
-                    <td></td>
+                    <td class="channel-cell"></td>
                     <td>Google Ads</td>
                     <td><span class="metric-box cac-medium">$6</span></td>
-                    <td>Срочные покупатели</td>
-                    <td>25-45, М 55%</td>
-                    <td>Забыли про праздник</td>
-                    <td>Боюсь не угадать с подарком</td>
-                    <td>Бренд Amazon (доверие)</td>
                     <td>2-3%</td>
+                    <td>$100</td>
+                    <td><strong>2.0%</strong><br><small>($2.00)</small></td>
                     <td>
-                        <span class="term-with-tooltip">$100
-                            <span class="tooltip-content">Срочные покупатели берут номиналы $100+ (более "солидный" подарок).</span>
+                        <span class="term-with-tooltip"><div class="stat-number">$2.00</div>
+                            <span class="tooltip-content"><span class="tooltip-formula">$2.00 × 1 покупка</span>Платный трафик не окупается.</span>
                         </span>
                     </td>
-                    <td>
-                        <span class="term-with-tooltip"><div class="stat-number">$100</div>
-                            <span class="tooltip-content"><span class="tooltip-formula">$100 × 1 покупка/год</span>Срочные покупки редко повторяются через наш сервис.</span>
-                        </span>
-                    </td>
-                    <td><span class="metric-box romi-excellent">1567%</span></td>
-                    <td>Сезонные пики (НГ, 8 Марта)</td>
+                    <td><span class="metric-box romi-negative">-67%</span></td>
+                    <td>⚠️ Глубоко убыточен</td>
                 </tr>
 
                 <!-- AFFILIATES -->
                 <tr data-channel="AFFILIATES" data-traffic="content" class="channel-affiliates">
-                    <td class="channel-cell">AFFILIATES<br><small>(Товары)</small></td>
+                    <td class="channel-cell">AFFILIATES</td>
                     <td>Content Marketing</td>
                     <td><span class="metric-box cac-medium">$15</span></td>
-                    <td>Trend seekers</td>
-                    <td>20-40, Ж 70%</td>
-                    <td>DIY, декор, мода, эко</td>
-                    <td>Хочу оригинальный, не масс-маркет</td>
-                    <td>Курируемые подборки, AI</td>
                     <td>3-5%</td>
+                    <td>$60</td>
+                    <td><strong>3.5%</strong><br><small>($2.10)</small></td>
                     <td>
-                        <span class="term-with-tooltip">$60
-                            <span class="tooltip-content">Импульсивные покупки (гаджеты, декор, аксессуары) до $50-70.</span>
+                        <span class="term-with-tooltip"><div class="stat-number">$6.30</div>
+                            <span class="tooltip-content"><span class="tooltip-formula">$2.10 × 3 покупки</span>Маржа 3.5% слишком мала для окупаемости контента.</span>
                         </span>
                     </td>
-                    <td>
-                        <span class="term-with-tooltip"><div class="stat-number">$180</div>
-                            <span class="tooltip-content"><span class="tooltip-formula">$60 × 3 покупки/год</span>Возврат на основные праздники: Новый Год, 8 марта, День рождения.</span>
-                        </span>
-                    </td>
-                    <td><span class="metric-box romi-excellent">1100%</span></td>
-                    <td>Высокая вовлеченность</td>
+                    <td><span class="metric-box romi-negative">-58%</span></td>
+                    <td>⚠️ Нужно повышать комиссию до 8-10%</td>
                 </tr>
-                <tr data-channel="AFFILIATES" data-traffic="social" class="channel-affiliates">
-                    <td></td>
-                    <td>TikTok / Reels Ads</td>
+                <tr data-channel="AFFILIATES" data-traffic="paid" class="channel-affiliates">
+                    <td class="channel-cell"></td>
+                    <td>TikTok Ads</td>
                     <td><span class="metric-box cac-high">$25</span></td>
-                    <td>Gen Z / Millennials</td>
-                    <td>18-32, Ж 75%</td>
-                    <td>Визуал, импульсивные покупки</td>
-                    <td>Скучные подарки, нужна WOW-идея</td>
-                    <td>Видео-обзоры, тренды</td>
                     <td>2-4%</td>
+                    <td>$45</td>
+                    <td><strong>3.5%</strong><br><small>($1.58)</small></td>
                     <td>
-                        <span class="term-with-tooltip">$45
-                            <span class="tooltip-content">Более доступные товары для молодой аудитории (до $50).</span>
+                        <span class="term-with-tooltip"><div class="stat-number">$4.73</div>
+                            <span class="tooltip-content"><span class="tooltip-formula">$1.58 × 3 покупки</span>Катастрофический убыток на платном трафике.</span>
                         </span>
                     </td>
-                    <td>
-                        <span class="term-with-tooltip"><div class="stat-number">$135</div>
-                            <span class="tooltip-content"><span class="tooltip-formula">$45 × 3 покупки/год</span>Импульсивные покупки на популярные праздники.</span>
-                        </span>
-                    </td>
-                    <td><span class="metric-box romi-good">440%</span></td>
-                    <td>Вирусный потенциал</td>
+                    <td><span class="metric-box romi-negative">-81%</span></td>
+                    <td>⛔ Отключить платный трафик</td>
                 </tr>
 
-                <!-- LOCAL PARTNERS -->
+                <!-- PARTNERS -->
                 <tr data-channel="PARTNERS" data-traffic="social" class="channel-partners">
-                    <td class="channel-cell">PARTNERS<br><small>(Впечатления)</small></td>
-                    <td>Instagram Geo-targeting</td>
+                    <td class="channel-cell">PARTNERS</td>
+                    <td>Instagram Geo</td>
                     <td><span class="metric-box cac-high">$30</span></td>
-                    <td>
-                         <span class="term-with-tooltip">Experience seekers
-                            <span class="tooltip-content">Люди, которые ценят эмоции выше вещей. Дарят впечатления (SPA, прыжки, мастер-классы), а не предметы.</span>
-                        </span>
-                    </td>
-                    <td>28-45, М/Ж 40/60</td>
-                    <td>Путешествия, wellness</td>
-                    <td>Подарить эмоции, не знаю мест</td>
-                    <td>Проверенные партнеры, сертификаты</td>
                     <td>2-3%</td>
+                    <td>$150</td>
+                    <td><strong>15.0%</strong><br><small>($22.50)</small></td>
                     <td>
-                        <span class="term-with-tooltip">$150
-                            <span class="tooltip-content">Впечатления стоят дорого: массаж, ужин, активности ~$100-200.</span>
+                        <span class="term-with-tooltip"><div class="stat-number">$67.50</div>
+                            <span class="tooltip-content"><span class="tooltip-formula">$22.50 × 3 покупки</span>Высокая маржа окупает дорогой трафик.</span>
                         </span>
                     </td>
-                    <td>
-                        <span class="term-with-tooltip"><div class="stat-number">$450</div>
-                            <span class="tooltip-content"><span class="tooltip-formula">$150 × 3 покупки/год</span>Premium-сегмент дарит реже, но дороже (партнеру, родителям, другу).</span>
-                        </span>
-                    </td>
-                    <td><span class="metric-box romi-excellent">1400%</span></td>
-                    <td>Высокий чек, premium сегмент</td>
+                    <td><span class="metric-box romi-excellent">125%</span></td>
+                    <td>✅ Самый стабильный канал</td>
                 </tr>
-                <tr data-channel="PARTNERS" data-traffic="social" class="channel-partners">
-                    <td></td>
-                    <td>Influencer Collaborations</td>
+                <tr data-channel="PARTNERS" data-traffic="paid" class="channel-partners">
+                    <td class="channel-cell"></td>
+                    <td>Influencers</td>
                     <td><span class="metric-box cac-high">$50</span></td>
-                    <td>Followers блогеров</td>
-                    <td>25-38, Ж 65%</td>
-                    <td>Доверяют инфлюенсерам</td>
-                    <td>Много рекламы, сложно отличить</td>
-                    <td>Реальные отзывы, видео</td>
                     <td>1.5-2.5%</td>
+                    <td>$180</td>
+                    <td><strong>15.0%</strong><br><small>($27.00)</small></td>
                     <td>
-                        <span class="term-with-tooltip">$180
-                            <span class="tooltip-content">Более дорогие впечатления через инфлюенсеров (~$150-200+).</span>
+                        <span class="term-with-tooltip"><div class="stat-number">$81.00</div>
+                            <span class="tooltip-content"><span class="tooltip-formula">$27.00 × 3 покупки</span>Хороший ROMI даже при высоком CAC.</span>
                         </span>
                     </td>
-                    <td>
-                        <span class="term-with-tooltip"><div class="stat-number">$540</div>
-                            <span class="tooltip-content"><span class="tooltip-formula">$180 × 3 покупки/год</span>Высокий чек компенсирует низкую частоту покупок.</span>
-                        </span>
-                    </td>
-                    <td><span class="metric-box romi-excellent">980%</span></td>
-                    <td>High trust traffic</td>
+                    <td><span class="metric-box romi-good">62%</span></td>
+                    <td>✅ Работает в плюс</td>
                 </tr>
 
                 <!-- SUBSCRIPTIONS -->
                 <tr data-channel="SUBS" data-traffic="organic" class="channel-subs">
-                    <td class="channel-cell">SUBS<br><small>(Premium)</small></td>
+                    <td class="channel-cell">SUBS</td>
                     <td>In-App Upsell</td>
                     <td><span class="metric-box cac-high">$70</span></td>
-                    <td>
-                        <span class="term-with-tooltip">Power users
-                            <span class="tooltip-content">Активные пользователи, которые создают сборы регулярно (HR, старосты групп). Им важны проф. функции.</span>
-                        </span>
-                    </td>
-                    <td>30-50, М/Ж 45/55</td>
-                    <td>Регулярные сборы, эффективность</td>
-                    <td>Комиссии съедают много</td>
-                    <td>0% комиссия, кастомизация</td>
                     <td>2-5%</td>
+                    <td>$60</td>
+                    <td><strong>85.0%</strong><br><small>($51.00)</small></td>
                     <td>
-                        <span class="term-with-tooltip">$60/yr
-                            <span class="tooltip-content">$5/мес или $60/год — стандартная цена за утилиту, экономящую на комиссиях.</span>
+                        <span class="term-with-tooltip"><div class="stat-number">$102.00</div>
+                            <span class="tooltip-content"><span class="tooltip-formula">$51.00 × 2 года</span>Высокая маржа подписки (минус эквайринг).</span>
                         </span>
                     </td>
-                    <td>
-                        <span class="term-with-tooltip"><div class="stat-number">$120</div>
-                            <span class="tooltip-content"><span class="tooltip-formula">$60/год × 2 года</span>Консервативный Lifetime для B2C подписок.</span>
-                        </span>
-                    </td>
-                    <td><span class="metric-box romi-ok">71%</span></td>
-                    <td>
-                         <span class="term-with-tooltip">Конверсия после 3+ активаций
-                            <span class="tooltip-content">Пользователь покупает подписку после 3 успешных бесплатных сборов, когда понимает ценность экономии на комиссиях.</span>
-                        </span>
-                    </td>
+                    <td><span class="metric-box romi-good">46%</span></td>
+                    <td>✅ Прибыльный канал</td>
                 </tr>
                 <tr data-channel="SUBS" data-traffic="paid" class="channel-subs">
-                    <td></td>
-                    <td>Email / Push Campaigns</td>
+                    <td class="channel-cell"></td>
+                    <td>Email Return</td>
                     <td><span class="metric-box cac-high">$120</span></td>
-                    <td>
-                        <span class="term-with-tooltip">Churned users
-                            <span class="tooltip-content">«Отвалившиеся» пользователи: зарегистрировались, но перестали пользоваться >3 месяцев. Пытаемся вернуть.</span>
-                        </span>
-                    </td>
-                    <td>28-45, М/Ж 50/50</td>
-                    <td>Пробовали, не стали регулярными</td>
-                    <td>Не видели ценности в Free</td>
-                    <td>Trial 30 дней, демонстрация ROI</td>
                     <td>1-2%</td>
+                    <td>$60</td>
+                    <td><strong>85.0%</strong><br><small>($51.00)</small></td>
                     <td>
-                        <span class="term-with-tooltip">$60/yr
-                            <span class="tooltip-content">Та же цена, но возвращенные юзеры живут меньше.</span>
+                        <span class="term-with-tooltip"><div class="stat-number">$76.50</div>
+                            <span class="tooltip-content"><span class="tooltip-formula">$51.00 × 1.5 года</span>Возврат юзеров обходится слишком дорого.</span>
                         </span>
                     </td>
-                    <td>
-                        <span class="term-with-tooltip"><div class="stat-number">$90</div>
-                            <span class="tooltip-content"><span class="tooltip-formula">$60/год × 1.5 года</span>Возвращенные пользователи имеют короткий Lifetime (высокий риск повторного churn).</span>
-                        </span>
-                    </td>
-                    <td><span class="metric-box romi-negative">-25%</span></td>
-                    <td>⚠️ Убыточный канал, работает только для реактивации ценных юзеров</td>
+                    <td><span class="metric-box romi-negative">-36%</span></td>
+                    <td>⚠️ Убыточно</td>
                 </tr>
             </tbody>
         </table>
@@ -442,20 +336,14 @@ tbody tr.channel-subs:hover .term-with-tooltip { border-bottom-color: #666; }
 
     <div class="summary">
         <div class="summary-card">
-            <h3>💡 Подсказка</h3>
-            <p>Наведите курсор на цифры <u>Среднего чека</u> и <u>LTV</u>, чтобы увидеть формулу расчета и пояснение.</p>
+            <h3>⚠️ Важный инсайт</h3>
+            <p>Партнерские каналы (Amazon, Affiliates) <strong>убыточны</strong> из-за низкой комиссии (2-3.5%) и низкого LTV. Их можно использовать только как витрину для удержания, но не лить на них платный трафик.</p>
         </div>
         <div class="summary-card">
-            <h3>📊 Методология</h3>
-            <p>Все LTV пересчитаны по <strong>нижней границе</strong> частоты покупок (консервативные оценки для защиты перед руководством).</p>
-        </div>
-        <div class="summary-card">
-            <h3>💰 Лучший ROMI</h3>
-            <p><strong>Donations (Viral)</strong>: 8650% благодаря CAC $2 и LTV $175</p>
-        </div>
-        <div class="summary-card">
-            <h3>⚠️ Зоны риска</h3>
-            <p><strong>Email/Push для Subs</strong>: ROMI -25%. Использовать только для high-value пользователей.</p>
+            <h3>✅ Точки роста</h3>
+            <p>1. <strong>Partners (15%)</strong>: Основной драйвер прибыли.<br>
+            2. <strong>Donations (7%)</strong>: Работает только на органике.<br>
+            3. <strong>Subs (85%)</strong>: Высокая маржа, но дорогое привлечение.</p>
         </div>
     </div>
 </div>
